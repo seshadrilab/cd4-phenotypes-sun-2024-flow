@@ -73,19 +73,19 @@ sampleGatingHierarchy <- function(gh, parentGate, n = NULL, otherGates = NULL) {
   library(CytoML) # 1.12.0
   library(flowCore) # required for description()
   library(flowWorkspace) # required for gh_pop_get_data()
-  
+
   stopifnot(length(gh) == 1)
   allMarkerNames <- pData(parameters(gh_pop_get_data(gh)))[,c(1,2)] # First column is flow channel, second is marker name
   if (any(is.na(allMarkerNames[,2])) | length(unique(allMarkerNames[,2])) < length(allMarkerNames[,2]))
     stop ("all marker names (even FSC-A and Time) must be assigned and be unique")
   # May want to loosen above requirement, using channel names where marker names are unavailable.
-  
+
   if(!is.null(n)) {
     # First take length n sample from all events in parentGate
     availableEvents <- gh_pop_get_count(gh, parentGate)
     nSampled <- sample.int(availableEvents, size = n)
   }
-  
+
   # Then extract boolean gate data and mfi data, and cbind them.
   # For now, in the interest of saving memory, the data is subset to the sampled events as soon as possible.
   parentGateIndices <- gh_pop_get_indices(gh, parentGate) # relative to all data in gh, i.e. root node. a TRUE/FALSE vector. Used for subsetting boolean data
@@ -98,19 +98,19 @@ sampleGatingHierarchy <- function(gh, parentGate, n = NULL, otherGates = NULL) {
       as.integer(gh_pop_get_indices_mat(gh, currentGate)[parentGateIndices,]) }))
   }
   colnames(perCellGateMembership) <- gates2Extract
-  
+
   if(!is.null(n)) {
     perCellMFIData <- exprs(gh_pop_get_data(gh, parentGate))[nSampled,]
   } else {
     perCellMFIData <- exprs(gh_pop_get_data(gh, parentGate))
   }
   colnames(perCellMFIData) <- allMarkerNames[match(colnames(perCellMFIData), allMarkerNames[,1]), 2]
-  
+
   # Combine Gate membership data with MFI expression data
   stopifnot(nrow(perCellGateMembership) == nrow(perCellMFIData))
   gateAndMFIData <- cbind(perCellGateMembership, perCellMFIData)
-  
-  # Add metadata and return 
+
+  # Add metadata and return
   cbind(pData(gh), gateAndMFIData, row.names = NULL)
 }
 
@@ -347,13 +347,13 @@ plot.COMPASSResult.ComplexHeatmap <- function(cr,
 # Boxplot of background-corrected subset percents out of the parent population
 # cr is the COMPASSResult object
 make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, output_folder=NA, current_ylim=NULL, add_legend=FALSE, legend_position=c(0.02, 1),
-                                         paired=FALSE, important_label=NULL, include_label=FALSE, color_important=FALSE, save_test_results=TRUE, p_text_size=5, include_0_line=FALSE, zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE, 
+                                         important_label=NULL, include_label=FALSE, color_important=FALSE, save_test_results=TRUE, p_text_size=5, include_0_line=FALSE, zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE, 
                                          plot_width=7, plot_height=6, dichotomize_by_cytokine=NULL, dichotomize_by_cytokine_color=NULL, group_by_colname="Group",
                                          group_by_order=c("Hospitalized", "Non-hospitalized"),
                                          group_by_colors=c("Hospitalized" = "#757bbcb2", "Non-hospitalized" = "#b0d2c8bf"),
                                          group_by_labels = c("Conv Hosp", "Conv Non-Hosp"),
                                          parentSubset="CD4+", cytokine_order_for_annotation=NULL, cytokine_row_name_text=NULL,
-                                         cats_heatmap_left_padding = 3, main_title = NULL, onlyShowPBelowAlpha = TRUE, adj_pval = FALSE) {
+                                         cats_heatmap_left_padding = 3, main_title = NULL, onlyShowPBelowAlpha = TRUE, adj_pval = FALSE, dataset_name = NULL) {
   # zeroed_BgCorr_stats If TRUE, the returned magnitude values and statistics are calculated using zeroed values
   # zeroed_BgCorr_plot If TRUE, the points on the plot are zeroed (regardless of zeroed_BgCorr_stats)
   library(ComplexHeatmap)
@@ -434,32 +434,10 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
   }
   
   # Non-parametric statistical hypothesis tests
-  if(paired) {
-    # Need both time points for a single PTID to do Wilcoxon signed rank test
-    # Drop any PTIDs without both time points
-    dat_bgCorr_wide <- dat_bgCorr_wide %>%
-      mutate(PTID = str_replace(.$Individual, c("-1|-2"), "")) %>%
-      group_by(PTID) %>%
-      filter(n()>1) %>% 
-      ungroup() %>%
-      select(-PTID)
-    
-    dat_bgCorr_long <- dat_bgCorr_long %>%
-      mutate(PTID = str_replace(.$Individual, c("-1|-2"), "")) %>%
-      group_by(PTID, BooleanSubset) %>%
-      filter(n()>1) %>% 
-      ungroup() %>%
-      select(-PTID)
-    
-    tests <- lapply(compassSubsetsFiltered, function(boolSubset) {
-      wilcox.test(as.formula(sprintf("`%s` ~ %s", boolSubset, group_by_colname)), data=dat_bgCorr_wide, paired=T)
+  tests <- lapply(compassSubsetsFiltered, function(boolSubset) {
+    wilcox.test(as.formula(sprintf("`%s` ~ %s", boolSubset, group_by_colname)), data=dat_bgCorr_wide)
     }) 
-  } else {
-    # Wilcoxon rank sum test works with unequal sample sizes 
-    tests <- lapply(compassSubsetsFiltered, function(boolSubset) {
-      wilcox.test(as.formula(sprintf("`%s` ~ %s", boolSubset, group_by_colname)), data=dat_bgCorr_wide)
-    }) 
-  }
+
   
   if(adj_pval) {
     pvals_df <- data.frame(BooleanSubset = compassSubsetsFiltered,
@@ -520,14 +498,8 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
     if(!is.na(output_folder)) {
       test_results_file_path <- file.path(output_folder,
                                           sprintf("%s_%s_%s_BooleanSubsets_BgCorrProps_MannWhitney.tsv",
+                                                  dataset_name,
                                                   run_name,
-                                                  if(subset_keep == "H-") {
-                                                    "N"
-                                                    } else if(subset_keep == "C-") {
-                                                      "C"
-                                                    } else if(subset_keep == "H-1|C-1") {
-                                                      "PRE"
-                                                    } else {"POST"},
                                                   if(zeroed_BgCorr_stats) {"Zeroed"} else {"NotZeroed"}))
       write.table(pvals_df_for_file,
                   file = test_results_file_path,
@@ -569,8 +541,8 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
   
   if(include_label) {
     p_boxplot <- p_boxplot +
-    geom_text(aes(label = ifelse(important, Individual, ""), group = Individual),
-              position = position_dodge(width = 0.9), size = 2.5)
+      geom_text(aes(label = ifelse(important, Individual, ""), group = Individual),
+                position = position_dodge(width = 0.9), size = 2.5)
   }
   
   if(color_important) {
@@ -589,7 +561,7 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
       scale_color_manual(values=group_by_colors)
     } else {
       scale_color_manual(values=group_by_colors,
-                        labels=group_by_labels)
+                         labels=group_by_labels)
     }
   }
   
@@ -708,243 +680,53 @@ make_boxplot_for_COMPASS_run <- function(cr, subset_keep = NULL, run_name, outpu
 
 ############################################################################################################################
 
-# Plots of functionality scores and polyfunctionality scores for all stims for a given timepoint and infection status group
-# Use Wilcoxon signed-rank test to compare across stim within a donor.
-# Show the medians in each group.
-# Note: all p-values unadjusted
-
-fs_pfs_plot <- function(df, FS_or_PFS = "FS", cd4_or_cd8 = "CD4", group = "Naive PRE", fill_colors = NULL, group_by_colname = NULL) {
-  d <- df %>% dplyr::filter(parent == cd4_or_cd8 & Group == group)
-  
-  d_wide <- d %>%  
-    pivot_wider(id_cols = c(`PATIENT ID`, Group), names_from = Stim, values_from = !!as.name(FS_or_PFS)) %>%
-    na.omit() # can't perform signed-rank test with missing data 
-  
-  # Signed rank test
-  n_s1_signed_rank_result <- wilcox.test(d_wide$NCAP, d_wide$S1, paired = T)
-  s1_s2_signed_rank_result <- wilcox.test(d_wide$S1, d_wide$S2, paired = T)
-  n_s2_signed_rank_result <- wilcox.test(d_wide$NCAP, d_wide$S2, paired = T)
-  
-  stim_x_order <- 1:3
-  d$Stim <- factor(d$Stim, levels = c("NCAP", "S1", "S2"))
-  names(stim_x_order) <- levels(d$Stim)
-  test_df <- data.frame(group1 = c("NCAP", "S1", "NCAP"),
-                                group2 = c("S1", "S2", "S2"),
-                                p.val = c(n_s1_signed_rank_result$p.value,
-                                          s1_s2_signed_rank_result$p.value,
-                                          n_s2_signed_rank_result$p.value)) %>% 
-    mutate(group1.xloc = unname(stim_x_order[group1]),
-           group2.xloc = unname(stim_x_order[group2]),
-           p_val_text = sapply(p.val, function(p) {
-             if(p < 0.001) {
-               "p<0.001"
-             } else {
-               paste0("p=", round(p, 3))
-             }
-           }),
-           y_pos = c(d %>% dplyr::filter(Stim %in% c("NCAP", "S1")) %>%
-                       dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-                     d %>% dplyr::filter(Stim %in% c("S1", "S2")) %>%
-                       dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-                     d %>% dplyr::filter(Stim %in% c("NCAP", "S1", "S2")) %>%
-                       dplyr::pull(!!FS_or_PFS) %>% max() + 0.25*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))),
-           geom_signif_group = paste0(group1, group2))
-  
-  medians <- d %>% group_by(Group, Infection_Status, Timepoint, Stim) %>%
-    summarise(med = median(!!as.name(FS_or_PFS))) %>% ungroup() %>% 
-    mutate(x.min.segment = 1:3 - 0.1,
-           x.end.segment = 1:3 + 0.1)
-  
-  ggplot(d, aes(Stim, !!as.name(FS_or_PFS))) +
-    geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-    geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol(group_by_colname))) +
-    labs(y = if(FS_or_PFS == "FS") {sprintf("%s Functionality Score", cd4_or_cd8)} else if(FS_or_PFS == "PFS") {sprintf("%s Polyfunctionality Score", cd4_or_cd8)},
-         title = group) +
-    theme_bw() +
-    theme(axis.title.x = element_blank(),
-          axis.title.y = element_text(size=20),
-          axis.text.y = element_text(color="black", size=17),
-          axis.text.x = element_text(color="black", size=20),
-          plot.title = element_text(hjust = 0.5, size=21),
-          panel.grid.major.x = element_blank(),
-          legend.position = "none",
-          plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
-    scale_x_discrete(expand = c(0.15, 0.15),
-                     labels = c("NCAP", "S1", "S2")) +
-    scale_color_manual(values = fill_colors[[group]]) +
-    ggsignif::geom_signif(inherit.aes=F,data=test_df,
-                          aes_string(xmin="group1.xloc", xmax="group2.xloc",
-                                     annotations="p_val_text", y_position="y_pos",
-                                     group="geom_signif_group"), # , family="Arial"
-                          tip_length = c(0, 0),
-                          textsize=5,
-                          size = 0.75,
-                          manual = TRUE) +
-    coord_cartesian(ylim = c(NA, max(test_df$y_pos) + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))))
-}
-
-############################################################################################################################
-
 split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
-                              cd4_or_cd8 = "CD4", compare_naive = FALSE,
-                              compare_conv = FALSE, compare_POST = FALSE,
-                              compare_PRE = FALSE, compare_intra = FALSE,
-                              group_by_colname = NULL, groups_to_compare = NULL, 
+                              cd4_or_cd8 = "CD4", group_by_colname = NULL, 
                               fill_colors = NULL, ylim = NULL) {
   d <- df %>% 
     dplyr::filter(Stim == current_stim & parent == cd4_or_cd8)
-  d_pre <- d %>% 
-    dplyr::filter(Timepoint == "PRE")
-  d_post <- d %>%
-    dplyr::filter(Timepoint == "POST")
   
   d_wide <- d %>%  
-    pivot_wider(id_cols = c(`PATIENT ID`, Infection_Status), names_from = Timepoint, values_from = !!as.name(FS_or_PFS)) %>%
-    na.omit() # can't perform signed-rank test with missing data
-  d_wide_naive <- d_wide %>% dplyr::filter(Infection_Status == "Naive")
-  d_wide_conv <- d_wide %>% dplyr::filter(Infection_Status == "Conv")
+    pivot_wider(id_cols = c(`SAMPLE ID`), names_from = Status, values_from = !!as.name(FS_or_PFS)) %>%
+    na.omit() 
   
-  # Signed rank test for Naive, pre-to-post-vac
-  naive_signed_rank_result <- wilcox.test(d_wide_naive$PRE, d_wide_naive$POST, paired = T)
-  # Signed rank test for Convalescent, pre-to-post-vac
-  conv_signed_rank_result <- wilcox.test(d_wide_conv$PRE, d_wide_conv$POST, paired = T)
+  # mann-whitney/wilcoxon rank-sum test 
+  mann_whitney_result <- wilcox.test(d %>% dplyr::pull(!!FS_or_PFS) ~ as.factor(d %>% dplyr::pull("Status")))
   
-  # mann-whitney/wilcoxon rank-sum test for Pre-vac, across infection status group
-  pre_mann_whitney_result <- wilcox.test(d_pre %>% dplyr::pull(!!FS_or_PFS) ~ as.factor(d_pre %>% dplyr::pull("Infection_Status")))
-  # mann-whitney/wilcoxon rank-sum test for Post-vac, across infection status group
-  post_mann_whitney_result <- wilcox.test(d_post %>% dplyr::pull(!!FS_or_PFS) ~ as.factor(d_post %>% dplyr::pull("Infection_Status")))
-  
-  timepoint_infection_status_x_order <- 1:4
-  names(timepoint_infection_status_x_order) <- levels(d$Group)
-  test_df <- data.frame(group1 = c("Naive PRE", "Conv PRE", "Naive PRE", "Naive POST"),
-                                group2 = c("Naive POST", "Conv POST", "Conv PRE", "Conv POST"),
-                                p.val = c(naive_signed_rank_result$p.value,
-                                          conv_signed_rank_result$p.value,
-                                          pre_mann_whitney_result$p.value,
-                                          post_mann_whitney_result$p.value)) %>% 
-    mutate(group1.xloc = unname(timepoint_infection_status_x_order[group1]),
-           group2.xloc = unname(timepoint_infection_status_x_order[group2]),
-           p_val_text = sapply(p.val, function(p) {
+  infection_status_x_order <- 1:2
+  names(infection_status_x_order) <- levels(d$Status)
+  test_df <- data.frame(group1 = "Pneg",
+                        group2 = "TST+",
+                        p.val = mann_whitney_result$p.value) %>% 
+    mutate(p.adj = p.adjust(p.val, method = "bonferroni")) %>% # Strict
+    mutate(group1.xloc = unname(infection_status_x_order[group1]),
+           group2.xloc = unname(infection_status_x_order[group2]),
+           p_val_text = sapply(p.adj, function(p) {
              if(p < 0.001) {
                "p<0.001"
              } else {
                paste0("p=", formatC(round(p, 3), format='f', digits=3))
              }
            }),
-           # y_pos = c(d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST")) %>%
-           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-           #           d %>% dplyr::filter(Group %in% c("Conv PRE", "Conv POST")) %>%
-           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.1*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-           #           d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST", "Conv PRE")) %>%
-           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.25*diff(range(d %>% dplyr::pull(!!FS_or_PFS))),
-           #           d %>% dplyr::filter(Group %in% c("Naive PRE", "Naive POST", "Conv PRE", "Conv POST")) %>%
-           #             dplyr::pull(!!FS_or_PFS) %>% max() + 0.4*diff(range(d %>% dplyr::pull(!!FS_or_PFS)))),
            geom_signif_group = paste0(group1, group2))
   
-  medians <- d %>% group_by(Group, Infection_Status, Timepoint) %>%
+  medians <- d %>% group_by(Status) %>%
     summarise(med = median(!!as.name(FS_or_PFS))) %>% ungroup() %>% 
-    mutate(x.min.segment = 1:4 - 0.1,
-           x.end.segment = 1:4 + 0.1)
+    mutate(x.min.segment = 1:2 - 0.1,
+           x.end.segment = 1:2 + 0.1)
   
-  group_lab <- c("Naive PRE" = "Naive\nPRE", 
-                 "Naive POST" = "Naive\nPOST",
-                 "Conv PRE" = "Conv\nPRE",
-                 "Conv POST" = "Conv\nPOST")
+  group_lab <- c("Pneg" = "Pneg", 
+                 "TST+" = "TST+") 
   
-  if(compare_naive){
-    d <- d %>%
-      filter(Infection_Status %in% "Naive")
-    
-    medians <- medians %>%
-      filter(Infection_Status %in% "Naive") %>%
-      select(-c(x.min.segment, x.end.segment)) %>%
-      add_column(x.min.segment = c(0.9,1.9), x.end.segment = c(1.1,2.1))
-    
-    group_lab <- c("Naive PRE" = "Naive\nPRE",
-                   "Naive POST" = "Naive\nPOST")
-    
-    test_df <- test_df %>%
-      filter(geom_signif_group %in% "Naive PRENaive POST") %>%
-      mutate(group1.xloc = replace(group1.xloc, group1.xloc != 1, 1)) %>%
-      mutate(group2.xloc = replace(group2.xloc, group2.xloc != 2, 2))
-  }
+  plot <- ggplot(d, aes(Status, !!as.name(FS_or_PFS))) +
+    geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+    geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol(group_by_colname))) +
+    scale_color_manual(values = fill_colors) +
+    scale_x_discrete(expand = c(0.3, 0.3), labels = group_lab) 
   
-  if(compare_conv){
-    d <- d %>%
-      filter(Infection_Status %in% "Conv")
-    
-    medians <- medians %>%
-      filter(Infection_Status %in% "Conv") %>%
-      select(-c(x.min.segment, x.end.segment)) %>%
-      add_column(x.min.segment = c(0.9,1.9), x.end.segment = c(1.1,2.1))
-    
-    group_lab <- c("Conv PRE" = "Conv\nPRE",
-                   "Conv POST" = "Conv\nPOST")
-    
-    test_df <- test_df %>%
-      filter(geom_signif_group %in% "Conv PREConv POST") %>%
-      mutate(group1.xloc = replace(group1.xloc, group1.xloc != 1, 1)) %>%
-      mutate(group2.xloc = replace(group2.xloc, group2.xloc != 2, 2))
-  }
-  
-  if(compare_POST){
-    d <- d %>%
-      filter(Timepoint %in% "POST")
-    
-    medians <- medians %>%
-      filter(Timepoint %in% "POST") %>%
-      select(-c(x.min.segment, x.end.segment)) %>%
-      add_column(x.min.segment = c(0.9,1.9), x.end.segment = c(1.1,2.1))
-    
-    group_lab <- c("Naive POST" = "Naive\nPOST",
-                   "Conv POST" = "Conv\nPOST")
-    
-    test_df <- test_df %>%
-      filter(geom_signif_group %in% "Naive POSTConv POST") %>%
-      mutate(group1.xloc = replace(group1.xloc, group1.xloc != 1, 1)) %>%
-      mutate(group2.xloc = replace(group2.xloc, group2.xloc != 2, 2))
-  }
-  
-  if(compare_PRE){
-    d <- d %>%
-      filter(Timepoint %in% "PRE")
-    
-    medians <- medians %>%
-      filter(Timepoint %in% "PRE") %>%
-      select(-c(x.min.segment, x.end.segment)) %>%
-      add_column(x.min.segment = c(0.9,1.9), x.end.segment = c(1.1,2.1))
-    
-    group_lab <- c("Naive PRE" = "Naive\nPRE",
-                   "Conv PRE" = "Conv\nPRE") 
-    
-    test_df <- test_df %>%
-      filter(geom_signif_group %in% "Naive PREConv PRE") %>%
-      mutate(group1.xloc = replace(group1.xloc, group1.xloc != 1, 1)) %>%
-      mutate(group2.xloc = replace(group2.xloc, group2.xloc != 2, 2))
-  }
-  
-  if(compare_intra) {
-    plot <- ggplot(d, aes(Group, !!as.name(FS_or_PFS))) +
-      geom_line(aes(group = `PATIENT ID`), color = fill_colors[[groups_to_compare]][1], size = 0.6, alpha = 0.5) +
-      geom_segment(data = medians,
-                   aes(x=x.min.segment, xend=x.end.segment, y=med, yend=med),
-                   inherit.aes=FALSE, size = 1) +
-      geom_point(size = 3, shape = 21, stroke = 1.5, aes(fill=!!as.symbol(group_by_colname), color=!!as.symbol(group_by_colname))) +
-      scale_color_manual(values = fill_colors[[groups_to_compare]]) +
-      scale_fill_manual(values = ggplot2::alpha(fill_colors[[groups_to_compare]], 0.3)) +
-      scale_x_discrete(expand = c(0.1, 0.1),
-                       labels = group_lab) 
-  } else {
-    plot <- ggplot(d, aes(Group, !!as.name(FS_or_PFS))) +
-      geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-      geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol(group_by_colname))) +
-      scale_color_manual(values = fill_colors[[groups_to_compare]]) +
-      scale_x_discrete(expand = c(0.3, 0.3),
-                       labels = group_lab) 
-  }
   
   plot <- plot +
-    labs(y = if(FS_or_PFS == "FS") {sprintf("%s Functionality Score", cd4_or_cd8)} else if(FS_or_PFS == "PFS") {sprintf("%s Polyfunctionality Score", cd4_or_cd8)},
+    labs(y = if(FS_or_PFS == "FS") {sprintf("%s FS", cd4_or_cd8)} else if(FS_or_PFS == "PFS") {sprintf("%s PFS", cd4_or_cd8)},
          title = current_stim) +
     theme_bw() +
     theme(axis.title.x = element_blank(),
@@ -976,7 +758,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
 # Individual magnitude/frequency plots
 
 make_mag_plots <- function(counts, counts_no_outlier = NULL, compare_time, keep, current_stim,
-                           groups_to_compare, paired, fill_colors,
+                           num_comparisons, groups_to_compare, paired, fill_colors,
                            group_by_colname, subtitle, ylim = NULL, y_axis_text,
                            y_axis_size, axis_break = NULL) {
   if(compare_time) {
@@ -1015,9 +797,10 @@ make_mag_plots <- function(counts, counts_no_outlier = NULL, compare_time, keep,
     test_df <- data.frame(group1 = groups_to_compare[1],
                           group2 = groups_to_compare[2],
                           p.val = test$p.value) %>% 
+      mutate(p.adj = p.adjust(p.val, method = "bonferroni", n = num_comparisons)) %>% # Strict
       mutate(group1.xloc = unname(timepoint_infection_status_x_order[group1]),
              group2.xloc = unname(timepoint_infection_status_x_order[group2]),
-             p_val_text = sapply(p.val, function(p) {
+             p_val_text = sapply(p.adj, function(p) {
                if(p < 0.001) {
                  "p<0.001"
                } else {
@@ -1032,7 +815,8 @@ make_mag_plots <- function(counts, counts_no_outlier = NULL, compare_time, keep,
              x.end.segment = 1:2 + 0.1)
   } else {
     test_df <- data.frame(p = as.numeric(unlist(test)["p.value"])) %>%
-      mutate(p_val_text = if_else(p < 0.001, "p<0.001", paste0("p=", formatC(round(p, 3), format='f', digits=3))))
+      mutate(p.adj = p.adjust(p, method = "bonferroni", n = num_comparisons)) %>% # Strict
+      mutate(p_val_text = if_else(p.adj < 0.001, "p<0.001", paste0("p=", formatC(round(p.adj, 3), format='f', digits=3))))
   }
   
   if(compare_time) {
@@ -1070,7 +854,7 @@ make_mag_plots <- function(counts, counts_no_outlier = NULL, compare_time, keep,
          y = y_axis_text) +
     force_panelsizes(rows = unit(3.5, "in"),
                      cols = unit(3, "in"))
-    
+  
   if(!is.null(ylim)) {
     current_plot <- current_plot + 
       coord_cartesian(ylim = ylim) +
