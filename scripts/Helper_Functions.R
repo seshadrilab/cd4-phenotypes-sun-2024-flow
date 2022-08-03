@@ -119,7 +119,6 @@ sampleGatingHierarchy <- function(gh, parentGate, n = NULL, otherGates = NULL) {
 
 # COMPASS Helper functions
 
-# TODO: load libraries. COMPASS, grid, ?
 runCompassOnce <- function(gs,
                            seed=NULL,
                            outDir,
@@ -757,27 +756,17 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
 
 # Individual magnitude/frequency plots
 
-make_mag_plots <- function(counts, counts_no_outlier = NULL, compare_time, keep, current_stim,
-                           num_comparisons, groups_to_compare, paired, fill_colors,
+make_mag_plots <- function(counts, counts_no_outlier = NULL, current_stim,
+                           num_comparisons, groups_to_compare, paired, adjust_p, fill_colors,
                            group_by_colname, subtitle, ylim = NULL, y_axis_text,
                            y_axis_size, axis_break = NULL) {
-  if(compare_time) {
-    counts <- counts %>%
-      dplyr::filter(grepl(keep, Group) & Stim == current_stim)
-  } else {
-    counts <- counts %>%
-      dplyr::filter(Timepoint == keep & Stim == current_stim)
-  }
+  
+  counts <- counts %>%
+    dplyr::filter(Stim == current_stim)
   
   if(!is.null(counts_no_outlier)) {
-    if(compare_time) {
-      counts_no_outlier <- counts_no_outlier %>%
-        dplyr::filter(grepl(keep, Group) & Stim == current_stim)
-    } else {
-      counts_no_outlier <- counts_no_outlier %>%
-        dplyr::filter(Timepoint == keep & Stim == current_stim)
-    }
-    counts_to_plot <- counts_no_outlier
+    counts_to_plot <- counts_no_outlier %>%
+        dplyr::filter(Stim == current_stim)
   } else {
     counts_to_plot <- counts
   }
@@ -785,57 +774,26 @@ make_mag_plots <- function(counts, counts_no_outlier = NULL, compare_time, keep,
   # P-values are unadjusted
   if(paired) {
     # Signed-rank test
-    test <- wilcox.test(Freq ~ Group, data = counts, paired = TRUE)
+    test <- wilcox.test(Freq ~ Status, data = counts, paired = TRUE)
   } else {
     # Rank sum test
-    test <- wilcox.test(Freq ~ Group, data = counts, paired = FALSE)
+    test <- wilcox.test(Freq ~ Status, data = counts, paired = FALSE)
   }
-  
-  if(compare_time) {
-    timepoint_infection_status_x_order <- 1:2
-    names(timepoint_infection_status_x_order) <- groups_to_compare
-    test_df <- data.frame(group1 = groups_to_compare[1],
-                          group2 = groups_to_compare[2],
-                          p.val = test$p.value) %>% 
-      mutate(p.adj = p.adjust(p.val, method = "bonferroni", n = num_comparisons)) %>% # Strict
-      mutate(group1.xloc = unname(timepoint_infection_status_x_order[group1]),
-             group2.xloc = unname(timepoint_infection_status_x_order[group2]),
-             p_val_text = sapply(p.adj, function(p) {
-               if(p < 0.001) {
-                 "p<0.001"
-               } else {
-                 paste0("p=", formatC(round(p, 3), format='f', digits=3))
-               }
-             }),
-             geom_signif_group = paste0(group1, group2))
-    
-    medians <- counts %>% group_by(Group) %>%
-      summarise(med = median(Freq)) %>% ungroup() %>% 
-      mutate(x.min.segment = 1:2 - 0.1,
-             x.end.segment = 1:2 + 0.1)
-  } else {
+ 
+  if(adjust_p) {
     test_df <- data.frame(p = as.numeric(unlist(test)["p.value"])) %>%
       mutate(p.adj = p.adjust(p, method = "bonferroni", n = num_comparisons)) %>% # Strict
       mutate(p_val_text = if_else(p.adj < 0.001, "p<0.001", paste0("p=", formatC(round(p.adj, 3), format='f', digits=3))))
+  } else {
+    test_df <- data.frame(p = as.numeric(unlist(test)["p.value"])) %>%
+      mutate(p_val_text = if_else(p < 0.001, "p<0.001", paste0("p=", formatC(round(p, 3), format='f', digits=3))))
   }
   
-  if(compare_time) {
-    current_plot <- ggplot(counts_to_plot, aes(x = Group, y = Freq)) +
-      geom_line(aes(group = `PATIENT ID`), color = fill_colors[[keep]][1], size = 0.6, alpha = 0.5) +
-      geom_segment(data = medians,
-                   aes(x=x.min.segment, xend=x.end.segment, y=med, yend=med),
-                   inherit.aes=FALSE, size = 1) +
-      geom_point(size = 3, shape = 21, stroke = 1.5, aes(fill=!!as.symbol(group_by_colname), color=!!as.symbol(group_by_colname))) +
-      scale_color_manual(values = fill_colors[[keep]]) +
-      scale_fill_manual(values = ggplot2::alpha(fill_colors[[keep]], 0.3)) +
-      scale_x_discrete(expand = c(0.1, 0.1), labels = stringr::str_replace_all(groups_to_compare, " ", "\n"))
-  } else {
-    current_plot <- ggplot(counts_to_plot, aes(x = Group, y = Freq)) +
-      geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
-      geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol(group_by_colname))) +
-      scale_color_manual(values = fill_colors[[keep]]) +
-      scale_x_discrete(labels = stringr::str_replace_all(groups_to_compare, " ", "\n"), expand = c(0.3, 0.3))
-  }
+  current_plot <- ggplot(counts_to_plot, aes(x = Status, y = Freq)) +
+    geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+    geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol(group_by_colname))) +
+    scale_color_manual(values = fill_colors) +
+    scale_x_discrete(labels = stringr::str_replace_all(groups_to_compare, " ", "\n"), expand = c(0.3, 0.3))
   
   current_plot <- current_plot +
     theme_bw() +
