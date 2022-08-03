@@ -49,10 +49,12 @@ source(here::here("scripts/Helper_Functions.R"))
 ```{r read in data}
 save_output <- TRUE
 
-stims_for_compass_runs <- c("PP1", "TB WCL")
-parent_nodes_for_compass_runs <- c("CD4+", "CD8+")
-stims_for_compass_runs_rep <- rep(stims_for_compass_runs, each = length(parent_nodes_for_compass_runs))
-parent_nodes_for_compass_runs_rep <- rep(parent_nodes_for_compass_runs, times = length(stims_for_compass_runs))
+# stims_for_compass_runs <- c("PP1", "TB WCL")
+# parent_nodes_for_compass_runs <- c("CD4+", "CD8+")
+# stims_for_compass_runs_rep <- rep(stims_for_compass_runs, each = length(parent_nodes_for_compass_runs))
+# parent_nodes_for_compass_runs_rep <- rep(parent_nodes_for_compass_runs, times = length(stims_for_compass_runs))
+stims_for_compass_runs_rep <- c("PP1", "PP1", "TB WCL")
+parent_nodes_for_compass_runs_rep <- c("CD4+", "CD8+", "CD8+")
 crList <- purrr::pmap(.l = list(parent_nodes_for_compass_runs_rep,
                                 stims_for_compass_runs_rep),
                       .f = function(parent, currentStim) {
@@ -62,7 +64,8 @@ crList <- purrr::pmap(.l = list(parent_nodes_for_compass_runs_rep,
                       }) %>% 
   set_names(gsub("+", "", gsub(" ", "_", paste0(parent_nodes_for_compass_runs_rep, "_", stims_for_compass_runs_rep)), fixed=TRUE))
 names(crList)
-CD4RunNames <- c("CD4_PP1", "CD4_TB_WCL")
+# CD4RunNames <- c("CD4_PP1", "CD4_TB_WCL")
+CD4RunNames <- "CD4_PP1"
 CD8RunNames <- c("CD8_PP1", "CD8_TB_WCL")
 
 gsPath <- here::here("out/GatingSets/RSTR_Th_GatingSet_B1")
@@ -165,7 +168,7 @@ cd8_merged_COMPASSResult$fit$categories <- cd8_data2plot$catsMerged %>% mutate_a
 rownames(cd8_merged_COMPASSResult$fit$categories) <- rownames(cd8_data2plot$catsMerged)
 cd8_merged_COMPASSResult$data$meta <- cd8_data2plot$rowannMerged
 cd8_merged_COMPASSResult$data$meta$Run_SAMPLE_ID <- rownames(cd8_merged_COMPASSResult$data$meta)
-cd8_merged_COMPASSResult$data$meta$Stim <- factor(dplyr::recode(sub("^8_", "", cd4_merged_COMPASSResult$data$meta$Stim), "CD8_PP1" = "PP1", "CD8_TB_WCL" = "TB WCL"), levels = c("PP1","TB WCL"))
+cd8_merged_COMPASSResult$data$meta$Stim <- factor(dplyr::recode(sub("^8_", "", cd8_merged_COMPASSResult$data$meta$Stim), "CD8_PP1" = "PP1", "CD8_TB_WCL" = "TB WCL"), levels = c("PP1","TB WCL"))
 cd8_merged_COMPASSResult$data$individual_id <- "Run_SAMPLE_ID"
 
 cd8_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd8_merged_COMPASSResult,
@@ -320,12 +323,12 @@ Show the medians in each group.
 Note: p-values are adjusted.
 
 ```{r, fig.width=4, fig.height=5}
-fs_plots <- pmap(list(rep(c("PP1", "TB_WCL"), times = 2),
-                      rep(c("CD4", "CD8"), each = 2)),
+fs_plots <- pmap(list("PP1",
+                      c("CD4", "CD8")),
                  function(current_stim, cd4_or_cd8) {
-                   split_fs_pfs_plot(df = fs_pfs_df, "FS", current_stim, cd4_or_cd8, fill_colors = fill_colors, 
+                   split_fs_pfs_plot(df = fs_pfs_df, "FS", current_stim, cd4_or_cd8, fill_colors = fill_colors,
                                      group_by_colname = "Status")
                    })
-names(fs_plots) <- paste0(rep(c("CD4", "CD8"), each = 2), "_", rep(c("PP1", "TB_WCL"), times = 2))
+names(fs_plots) <- paste0(c("CD4", "CD8"), "_", "PP1")
 fs_plots
 ```
