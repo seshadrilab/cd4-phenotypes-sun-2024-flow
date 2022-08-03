@@ -48,6 +48,8 @@ future::supportsMulticore() # Run in terminal to get TRUE
 # see ?future::supportsMulticore "
 future::plan(multicore(workers = max(1, availableCores() - 2)))
 
+#TODO: figure out why there is no COMPASS output for CD4 TB WCL.
+
 system.time({
   out <- furrr::future_pmap(.l = list(stims_for_compass_runs_rep,
                                       parent_nodes_for_compass_runs_rep,
