@@ -172,7 +172,7 @@ cd8_merged_COMPASSResult$fit$categories <- cd8_data2plot$catsMerged %>% mutate_a
 rownames(cd8_merged_COMPASSResult$fit$categories) <- rownames(cd8_data2plot$catsMerged)
 cd8_merged_COMPASSResult$data$meta <- cd8_data2plot$rowannMerged
 cd8_merged_COMPASSResult$data$meta$Run_SAMPLE_ID <- rownames(cd8_merged_COMPASSResult$data$meta)
-cd8_merged_COMPASSResult$data$meta$Stim <- factor(dplyr::recode(sub("^8_", "", cd4_merged_COMPASSResult$data$meta$Stim), "CD8_PP1" = "PP1", "CD8_TB_WCL" = "TB WCL"), levels = c("PP1","TB WCL"))
+cd8_merged_COMPASSResult$data$meta$Stim <- factor(dplyr::recode(sub("^8_", "", cd8_merged_COMPASSResult$data$meta$Stim), "CD8_PP1" = "PP1", "CD8_TB_WCL" = "TB WCL"), levels = c("PP1","TB WCL"))
 cd8_merged_COMPASSResult$data$individual_id <- "Run_SAMPLE_ID"
 
 cd8_heatmap <- plot.COMPASSResult.ComplexHeatmap(cr = cd8_merged_COMPASSResult,
