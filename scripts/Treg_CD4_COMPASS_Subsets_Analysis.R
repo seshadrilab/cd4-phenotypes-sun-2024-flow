@@ -190,7 +190,7 @@ foxp3_cd25_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
                                   make_mag_plots(count_list[[nodes_short[1]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[1],
-                                                 y_axis_text = "% COMPASS-selected CD4 T Cells", y_axis_size = 15,   ylim = c(0, 5))
+                                                 y_axis_text = "% COMPASS-selected CD4 T Cells", y_axis_size = 15,   ylim = c(0, 50))
                               })
 names(foxp3_cd25_plots) <- stims
 
@@ -222,7 +222,7 @@ cd39_cd73_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
                                   make_mag_plots(count_list[[nodes_short[5]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[5],
-                                                 y_axis_text = "% COMPASS-selected CD4 T Cells", y_axis_size = 15,   ylim = c(0, 30))
+                                                 y_axis_text = "% COMPASS-selected CD4 T Cells", y_axis_size = 15,   ylim = c(0, 3))
                                 })
 names(cd39_cd73_plots) <- stims
 
