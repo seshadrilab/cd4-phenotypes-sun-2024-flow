@@ -7,7 +7,7 @@ library(flowCore)
 # so we have to manually add boolean gates for each subset to the GatingSets and then extract the count data later.
 
 ## Load data ##
-gsPath <- here::here("out/GatingSets/HAARVIVAC_GatingSet")
+gsPath <- here::here("out/GatingSets/RSTR_Treg_GatingSet")
 gs <- load_gs(gsPath)
 
 merged_cd4_compass_data <- readRDS("processed_data/Merged_Treg_CD4_COMPASS_Data.rds")
@@ -100,7 +100,7 @@ cd8_cd25_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+
 
 gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd4_foxp3_path,
-                                                         "&!", cd4_cd25_path))))),
+                                                         "&", cd4_cd25_path))))),
            parent = "CD4_COMPASS_Subsets", name = "FOXP3+CD25+")
 
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_foxp3_path),
@@ -111,7 +111,7 @@ gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_cd25_path),
 
 gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd8_foxp3_path,
-                                                         "&!", cd8_cd25_path))))),
+                                                         "&", cd8_cd25_path))))),
            parent = "CD8_COMPASS_Subsets", name = "FOXP3+CD25+")
 
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_foxp3_path),
@@ -128,7 +128,7 @@ cd8_cd73_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+
 
 gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd4_cd39_path,
-                                                         "&!", cd4_cd73_path))))),
+                                                         "&", cd4_cd73_path))))),
            parent = "CD4_COMPASS_Subsets", name = "CD39+CD73+")
 
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_cd39_path),
@@ -139,7 +139,7 @@ gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_cd73_path),
 
 gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd8_cd39_path,
-                                                         "&!", cd8_cd73_path))))),
+                                                         "&", cd8_cd73_path))))),
            parent = "CD8_COMPASS_Subsets", name = "CD39+CD73+")
 
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_cd39_path),
