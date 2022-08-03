@@ -130,7 +130,7 @@ names(markernames_b2) <- pData(parameters(gh_pop_get_data(gs_b2[[1]])))[,1]
 markernames(gs_b2) <- markernames_b2
 pData(parameters(gh_pop_get_data(gs_b2[[1]])))[,c(1,2)]
 
-# Make sure nodes, pData, and markers are consistent among the three batches
+# Make sure nodes, pData, and markers are consistent among the two batches
 setdiff(sort(gh_get_pop_paths(gs_b1)), sort(gh_get_pop_paths(gs_b2)))
 all(sort(gh_get_pop_paths(gs_b1)) == sort(gh_get_pop_paths(gs_b2)))
 all(markernames(gs_b1) == markernames(gs_b2))
@@ -268,7 +268,7 @@ low_count <- cd3_cd4_cd8_counts %>%
   select("SAMPLE ID", "Stim", "CD4", "CD8", "DN") %>%
   arrange("SAMPLE ID")
 
-low_count # None for CD4 and CD8, but 7 samples have low DN count. Will be dropped automatically by COMPASS  
+low_count # None for CD4 and CD8, but 7 samples have low DN count. Nothing to drop for COMPASS
 
 ## Plot DMSO signal stratified by cohort ##
 # Load gating set if needed: 
