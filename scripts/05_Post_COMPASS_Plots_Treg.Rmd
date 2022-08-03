@@ -57,7 +57,7 @@ crList <- purrr::pmap(.l = list(parent_nodes_for_compass_runs_rep,
                                 stims_for_compass_runs_rep),
                       .f = function(parent, currentStim) {
                         currentStimForFile <- gsub(" ", "_", currentStim)
-                        crPath <- here::here(sprintf("out/CompassOutput/%s/%s/COMPASSResult_%s_%s.rds", parent, currentStimForFile, parent, currentStimForFile))
+                        crPath <- here::here(sprintf("out/Treg_CompassOutput/%s/%s/COMPASSResult_%s_%s.rds", parent, currentStimForFile, parent, currentStimForFile))
                         readRDS(crPath)
                       }) %>% 
   set_names(gsub("+", "", gsub(" ", "_", paste0(parent_nodes_for_compass_runs_rep, "_", stims_for_compass_runs_rep)), fixed=TRUE))
@@ -102,9 +102,6 @@ Arial <- Type1Font(family = "Arial",
                                here::here("data/Arial_afm/ArialMT-BoldItalic.afm")))
 windowsFonts("Arial" = windowsFont("Arial"))
 pdfFonts(Arial = Arial)
-
-# Naive PRE is light blue, Naive POST is dark blue. "#54A8E1" "#196293"
-# Conv PRE is light red, Conv POST is dark red "#EB4D4F" "#9D1213"
 ```
 
 # Stacked heat maps by infection status
