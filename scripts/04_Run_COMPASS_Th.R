@@ -24,7 +24,7 @@ source(here::here("scripts/Helper_Functions.R"))
 date <- 20220613
 
 # Load GatingSet
-gsPath <- here::here("out/GatingSets/RSTR_Th_GatingSet_B1/")
+gsPath <- here::here("out/GatingSets/RSTR_Th_GatingSet/")
 gs <- load_gs(gsPath)
 
 stims_for_compass_runs <- c("PP1", "TB WCL")
@@ -79,7 +79,7 @@ system.time({
                                                currentTreatment=currentStim,
                                                currentControl="DMSO",
                                                stratifyBy=NULL, 
-                                               iter=4000,
+                                               iter=40000,
                                                eventCountFilterThreshold=3000,
                                                textForRunOutputId=paste0(parent, "_", gsub(" ", "_", currentStim)))
                                 gc()
