@@ -44,29 +44,25 @@ if(!dir.exists(here::here("out/GatingSets"))) {
 
 ## Load data ##
 xml_path_b1 <- here::here("data/20220415 RSTR INS Th B1VF1.xml")
-# xml_path_b2 <- here::here("data/RSTR INS Th B2VF1.xml")
+xml_path_b2 <- here::here("data/20220801 RSTR INS Th B2VF1.xml")
 fcs_subfolder_b1 <- here::here("data/20220415_RSTR_INS_Th_FCS_B1/")
-# fcs_subfolder_b2 <- here::here("data/20220429_RSTR_INS_Th_FCS_B2/")
+fcs_subfolder_b2 <- here::here("data/20220429_RSTR_INS_Th_FCS_B2/")
 ws_b1 <- open_flowjo_xml(xml_path_b1)
-# ws_b2 <- open_flowjo_xml(xml_path_b2)
+ws_b2 <- open_flowjo_xml(xml_path_b2)
 metadata <- read_xlsx(here::here("data/2022 RSTR INS Metadata.xlsx"), sheet = 2, range = cell_rows(1:41))
 
-# # Drop the samples we didn't use from the metadata
-# metadata <- subset(metadata, is.na(metadata[,"...11"])) %>%
-#   select(`Sample ID`, `Status`)
-
-# Only keep batch 1 samples in metadata
-metadata <- metadata %>%
-  filter(Batch == 1)
+# Drop the samples we didn't use from the metadata
+metadata <- subset(metadata, is.na(metadata[,"...11"])) %>%
+  select(`Sample ID`, `Status`)
 
 ## Create workspaces and prepare GatingSets ##
 names(fj_ws_get_keywords(ws_b1, 117))
 keywords2import <- c("EXPERIMENT NAME",
-                       "$DATE",
-                       "SAMPLE ID",
-                       "Stim",
-                       "WELL ID",
-                       "PLATE NAME")
+                     "$DATE",
+                     "SAMPLE ID",
+                     "Stim",
+                     "WELL ID",
+                     "PLATE NAME")
 
 sampleGroup <- "Samples"
 
@@ -76,48 +72,23 @@ gs_b1 <- flowjo_to_gatingset(ws_b1,
                              path=fcs_subfolder_b1,
                              extend_val=-10000)
 
-# gs_b2 <- flowjo_to_gatingset(ws_b2,                                    
-#                              name=sampleGroup, 
-#                              keywords=keywords2import,
-#                              path=fcs_subfolder_b2, 
-#                              extend_val=-10000)
+gs_b2 <- flowjo_to_gatingset(ws_b2,
+                             name=sampleGroup,
+                             keywords=keywords2import,
+                             path=fcs_subfolder_b2,
+                             extend_val=-10000)
 
 # Check that gating trees are consistent
 pop_lists_b1 <- lapply(gs_b1, gh_get_pop_paths)
 unique(pop_lists_b1)
 
-# pop_lists_b2 <- lapply(gs_b2, gh_get_pop_paths)
-# unique(pop_lists_b2)
-
-# # The second tree has an errant node at [21] and the third tree at [52]
-# # Which samples contain these errant nodes?
-# x <- as.vector(NULL)
-# for(i in 1:length(pop_lists_b2)){
-#   x[i] <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/CD8+" %in% pop_lists_b2[[i]]
-# }
-# which(x == TRUE) # Entries 22-24 are true
-# pData(gs_b2[[c(22, 23, 24)]]) # 202060.fcs_1280948, 202062.fcs_1194574, 202064.fcs_1239513
-# 
-# y <- as.vector(NULL)
-# for(i in 1:length(pop_lists_b2)){
-#   y[i] <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/FSC-A, <B515-A> subset" %in% pop_lists_b2[[i]]
-# }
-# which(y == TRUE) # Entry 54 is TRUE
-# pData(gs_b2[[54]]) # 202130.fcs_1372548
-# 
-# # Remove the errant nodes from the gating set
-# gs_pop_remove(gs_b2[c("202060.fcs_1280948", "202062.fcs_1194574", "202064.fcs_1239513")], "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/CD8+")
-# gs_pop_remove(gs_b2["202130.fcs_1372548"], "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/FSC-A, <B515-A> subset")
-# 
-# # Recheck both gating trees 
-# z <- c(gs_b1, gs_b2)
-# pop_lists <- lapply(z, gh_get_pop_paths)
-# unique(pop_lists)
+pop_lists_b2 <- lapply(gs_b2, gh_get_pop_paths)
+unique(pop_lists_b2)
 
 # Remove channels from flow data that are not used by gates
 gs_b1 <- gs_remove_redundant_channels(gs_b1) # drop SSC-H, V655-A
 
-# gs_b2 <- gs_remove_redundant_channels(gs_b2) # drop SSC-H, G610-A, R710-A, V655-A
+gs_b2 <- gs_remove_redundant_channels(gs_b2) # drop SSC-H, V655-A
 
 # Add names to all channels
 dput(unname(pData(parameters(gh_pop_get_data(gs_b1[[1]])))[,2]))
@@ -127,31 +98,29 @@ names(markernames_b1) <- pData(parameters(gh_pop_get_data(gs_b1[[1]])))[,1]
 markernames(gs_b1) <- markernames_b1
 pData(parameters(gh_pop_get_data(gs_b1[[1]])))[,c(1,2)]
 
-# dput(unname(pData(parameters(gh_pop_get_data(gs_b2[[1]])))[,2]))
-# markernames_b2 <- c("Time", "FSC-A", "FSC-H", "SSC-A", "CTLA4", "CD4", "OX40", "CD154", "IL10", "CD39", 
-#                     "FOXP3", "CD14_19", "CCR7", "CD137", "LD", "CD8a", "CD25", "CD73", "CD3")
-# names(markernames_b2) <- pData(parameters(gh_pop_get_data(gs_b2[[1]])))[,1]
-# markernames(gs_b2) <- markernames_b2
-# pData(parameters(gh_pop_get_data(gs_b2[[1]])))[,c(1,2)]
+dput(unname(pData(parameters(gh_pop_get_data(gs_b2[[1]])))[,2]))
+markernames_b2 <- c("Time", "FSC-A", "FSC-H", "SSC-A", "CTLA4", "CD4", "OX40", "CD154", "CXCR3", "TBET", 
+                    "CCR6", "IL17a", "RORyT", "CD14_19", "CCR7", "CD137", "LD", "CD8a", "IFNg", "CD45RA", "CD3")
+names(markernames_b2) <- pData(parameters(gh_pop_get_data(gs_b2[[1]])))[,1]
+markernames(gs_b2) <- markernames_b2
+pData(parameters(gh_pop_get_data(gs_b2[[1]])))[,c(1,2)]
 
-# # Make sure nodes, pData, and markers are consistent among the two batches
-# setdiff(sort(gh_get_pop_paths(gs_b1)), sort(gh_get_pop_paths(gs_b2)))
-# all(sort(gh_get_pop_paths(gs_b1)) == sort(gh_get_pop_paths(gs_b2)))
-# all(markernames(gs_b1) == markernames(gs_b2))
-# all(colnames(pData(gs_b1)) == colnames(pData(gs_b2))) 
+# Make sure nodes, pData, and markers are consistent among the two batches
+setdiff(sort(gh_get_pop_paths(gs_b1)), sort(gh_get_pop_paths(gs_b2)))
+all(sort(gh_get_pop_paths(gs_b1)) == sort(gh_get_pop_paths(gs_b2)))
+all(markernames(gs_b1) == markernames(gs_b2))
+all(colnames(pData(gs_b1)) == colnames(pData(gs_b2)))
 
-# # Merge GatingSets from all batches
-# gs <- merge_list_to_gs(c(gs_b1, gs_b2))
-
-gs <- gs_b1
+# Merge GatingSets from all batches
+gs <- merge_list_to_gs(c(gs_b1, gs_b2))
 
 # Plot gating tree
 png(here::here("out/QC/Th_GatingTree.png"), width = 7, height = 5, units = "in", res = 300)
 plot(gs, fontsize=15, bool=T)
 dev.off()
 
-# # Drop sample RS102161 (had bacterial contamination after stimulation)
-# gs <- subset(gs, `SAMPLE ID` != "RS102161")
+# Drop sample RS102161 (had bacterial contamination after stimulation)
+gs <- subset(gs, `SAMPLE ID` != "RS102161")
 
 # Add "Status" column indicating if a sample is Pneg or TST+
 metadata <- metadata %>%
@@ -172,7 +141,7 @@ pData(gs)$Status[pneg_index] <- "Pneg"
 pData(gs)$Status[tst_index] <- "TST+"
 
 # Save GatingSet 
-save_gs(gs, here::here("out/GatingSets/RSTR_Th_GatingSet_B1"))
+save_gs(gs, here::here("out/GatingSets/RSTR_Th_GatingSet"))
 
 ## Perform QC ##
 # Load gating set if needed: 
@@ -193,7 +162,7 @@ cd3_cd4_cd8_counts <- pData(gs) %>%
   rename(CD3 = !!cd3_path,
          CD4 = !!cd4_path,
          CD8 = !!cd8_path,
-         DN = !! dn_path)
+         DN = !!dn_path)
 
 # Plot CD3 Count
 png(here::here("out/QC/Counts/Th_CD3_Counts.png"), width = 10, height = 6, units="in", res=300)
@@ -249,11 +218,11 @@ low_count <- cd3_cd4_cd8_counts %>%
   select("SAMPLE ID", "Stim", "CD4", "CD8", "DN") %>%
   arrange("SAMPLE ID")
 
-low_count # None for CD4 and CD8, but 3 samples have low DN count. Nothing to drop for COMPASS
+low_count # None for CD4 and CD8, but 6 samples have low DN count. Nothing to drop for COMPASS
 
 ## Plot DMSO signal stratified by cohort ##
 # Load gating set if needed: 
-gs <- load_gs(here::here("out/GatingSets/RSTR_Th_GatingSet_B1"))
+# gs <- load_gs(here::here("out/GatingSets/RSTR_Th_GatingSet"))
 
 # Get nodes of interest (include parent nodes and markers of interest)
 dput(gh_get_pop_paths(gs))
