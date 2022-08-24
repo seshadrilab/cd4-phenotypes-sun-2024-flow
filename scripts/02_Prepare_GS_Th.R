@@ -135,7 +135,7 @@ pneg_samples <- paste(pneg_samples, collapse = "|")
 tst_samples <- metadata$`TST+` 
 tst_samples <- paste(tst_samples, collapse = "|")
 
-pneg_index <- grepl(pneg_samples, pData(gs)$`SAMPLE ID`) 
+pneg_index <- grepl(pneg_samples, pData(gs)$`SAMPLE ID`)
 tst_index <- grepl(tst_samples, pData(gs)$`SAMPLE ID`) 
 pData(gs)$Status[pneg_index] <- "Pneg"
 pData(gs)$Status[tst_index] <- "TST+"
@@ -263,9 +263,9 @@ plot_pop <- function(pop) {
   parent <- sub("(.*)\\/.*", "\\1", pop)
   tmp_dat <- dmso_freq %>%
     mutate(prop = !!as.name(pop) / ParentCount)
-  kw_p <- kruskal.test(prop ~ Status, data = tmp_dat)$p.value
-  p.unadj.text <- sprintf("Kruskal-Wallis Test: p-unadj%s",
-                          if_else(kw_p < 0.001, "<0.001", paste0("=", sub("0.", ".", round(kw_p, 3)))))
+  wilcox_p <- wilcox.test(prop ~ Status, data = tmp_dat, paired = FALSE)$p.value
+  p.unadj.text <- sprintf("Wilcoxon Rank-Sum Test: p-unadj%s",
+                          if_else(wilcox_p < 0.001, "<0.001", paste0("=", sub("0.", ".", round(wilcox_p, 3)))))
   
   ggplot(tmp_dat, aes(Status, prop)) +
     geom_boxplot(outlier.shape = NA) +
