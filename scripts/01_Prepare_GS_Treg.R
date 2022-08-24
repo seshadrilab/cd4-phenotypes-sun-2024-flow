@@ -308,9 +308,9 @@ plot_pop <- function(pop) {
   parent <- sub("(.*)\\/.*", "\\1", pop)
   tmp_dat <- dmso_freq %>%
     mutate(prop = !!as.name(pop) / ParentCount)
-  kw_p <- kruskal.test(prop ~ Status, data = tmp_dat)$p.value
-  p.unadj.text <- sprintf("Kruskal-Wallis Test: p-unadj%s",
-                          if_else(kw_p < 0.001, "<0.001", paste0("=", sub("0.", ".", round(kw_p, 3)))))
+  wilcox_p <- wilcox.test(prop ~ Status, data = tmp_dat, paired = FALSE)$p.value
+  p.unadj.text <- sprintf("Wilcoxon Rank-Sum Test: p-unadj%s",
+                          if_else(wilcox_p < 0.001, "<0.001", paste0("=", sub("0.", ".", round(wilcox_p, 3)))))
   
   ggplot(tmp_dat, aes(Status, prop)) +
     geom_boxplot(outlier.shape = NA) +
@@ -332,7 +332,7 @@ plot_pop <- function(pop) {
 plot_pop(nodes_short[[4]]) # The first three nodes in the list are parent nodes
 
 for(pop in nodes_short[4:length(nodes_short)]) {
-  png(file=here::here(sprintf("out/QC/DMSO_Signal/%s_vs_Status.png", 
+  png(file=here::here(sprintf("out/QC/DMSO_Signal/Treg_%s_vs_Status.png", 
                               sub("\\/", "_", pop))), width=300, height=265, units = "px")
   print(plot_pop(pop))
   dev.off()
