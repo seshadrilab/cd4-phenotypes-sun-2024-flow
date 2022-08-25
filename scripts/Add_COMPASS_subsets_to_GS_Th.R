@@ -7,7 +7,7 @@ library(flowCore)
 # so we have to manually add boolean gates for each subset to the GatingSets and then extract the count data later.
 
 ## Load data ##
-gsPath <- here::here("out/GatingSets/RSTR_Th_GatingSet_B1")
+gsPath <- here::here("out/GatingSets/RSTR_Th_GatingSet")
 gs <- load_gs(gsPath)
 
 merged_cd4_compass_data <- readRDS("processed_data/Merged_Th_CD4_COMPASS_Data.rds")
