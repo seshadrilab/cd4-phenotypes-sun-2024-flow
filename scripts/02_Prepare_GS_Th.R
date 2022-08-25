@@ -257,7 +257,7 @@ dmso_freq <- subset(gs, Stim == "DMSO") %>%
   pivot_wider(names_from = Population, values_from = Count) %>%
   rename_at(vars(all_of(nodes)), ~ nodes_short) 
 
-# Plot DMSO frequencies and perform Kruskal-Wallis test among status groups
+# Plot DMSO frequencies and perform Wilcoxon rank-sum test among status groups
 # Argument "pop" is the list of nodes of interest
 plot_pop <- function(pop) {     
   parent <- sub("(.*)\\/.*", "\\1", pop)
