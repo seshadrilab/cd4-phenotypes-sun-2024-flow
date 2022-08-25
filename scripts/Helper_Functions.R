@@ -131,7 +131,8 @@ runCompassOnce <- function(gs,
                            stratifyBy=NULL,
                            iter=40000,
                            eventCountFilterThreshold=0,
-                           textForRunOutputId=NULL) {
+                           textForRunOutputId=NULL,
+                           category_filter_function=function(x) colSums(x > 5) > 2) {
   require(COMPASS)
   require(grid)
   
@@ -160,10 +161,11 @@ runCompassOnce <- function(gs,
   # This work-around uses bquote() to build up an expression consisting of a call to COMPASS::COMPASS(). eval() then evaluates this expression.
   # bquote() returns an expression consisting of the code you provided, but it first evaluates everything in .() 
   # It is not an ideal solution, but it works for now.
-  fit <- eval(bquote(COMPASS::COMPASS( CC,
-                                       treatment= .(as.name(treatmentCol)) == .(eval(currentTreatment)), 
-                                       control= .(as.name(treatmentCol)) == .(eval(currentControl)),
-                                       iterations=iter
+  fit <- eval(bquote(COMPASS::COMPASS(CC,
+                                      treatment= .(as.name(treatmentCol)) == .(eval(currentTreatment)), 
+                                      control= .(as.name(treatmentCol)) == .(eval(currentControl)),
+                                      iterations=iter,
+                                      category_filter=category_filter_function
   )))
   
   message("COMPASS complete, now saving output")
