@@ -10,8 +10,8 @@ library(flowCore)
 gsPath <- here::here("out/GatingSets/RSTR_Treg_GatingSet")
 gs <- load_gs(gsPath)
 
-merged_cd4_compass_data <- readRDS("processed_data/Merged_Treg_CD4_COMPASS_Data.rds")
-merged_cd8_compass_data <- readRDS("processed_data/Merged_Treg_CD8_COMPASS_Data.rds")
+merged_cd4_compass_data <- readRDS("processed_data/Merged_Treg_CD4_COMPASS_Data_filtered.rds")
+merged_cd8_compass_data <- readRDS("processed_data/Merged_Treg_CD8_COMPASS_Data_filtered.rds")
 
 ## Add the CD4+ COMPASS boolean cytokine subset gates to the GatingSet ##
 mapMarkers <- c("CD154", "CD137", "CTLA4", "OX40")
@@ -103,6 +103,16 @@ gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                                          "&", cd4_cd25_path))))),
            parent = "CD4_COMPASS_Subsets", name = "FOXP3+CD25+")
 
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_foxp3_path,
+                                                         "&!", cd4_cd25_path))))),
+           parent = "CD4_COMPASS_Subsets", name = "FOXP3+CD25-")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd4_foxp3_path,
+                                                         "&", cd4_cd25_path))))),
+           parent = "CD4_COMPASS_Subsets", name = "FOXP3-CD25+")
+
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_foxp3_path),
            parent = "CD4_COMPASS_Subsets", name = "FOXP3+")
 
@@ -113,6 +123,16 @@ gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd8_foxp3_path,
                                                          "&", cd8_cd25_path))))),
            parent = "CD8_COMPASS_Subsets", name = "FOXP3+CD25+")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd8_foxp3_path,
+                                                         "&!", cd8_cd25_path))))),
+           parent = "CD8_COMPASS_Subsets", name = "FOXP3+CD25-")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd8_foxp3_path,
+                                                         "&", cd8_cd25_path))))),
+           parent = "CD8_COMPASS_Subsets", name = "FOXP3-CD25+")
 
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_foxp3_path),
            parent = "CD8_COMPASS_Subsets", name = "FOXP3+")
