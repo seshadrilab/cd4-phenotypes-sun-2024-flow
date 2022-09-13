@@ -761,7 +761,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
 make_mag_plots <- function(counts, counts_no_outlier = NULL, current_stim,
                            num_comparisons, groups_to_compare, paired, adjust_p, fill_colors,
                            group_by_colname, subtitle, ylim = NULL, y_axis_text,
-                           y_axis_size, axis_break = NULL) {
+                           y_axis_size) {
   
   counts <- counts %>%
     dplyr::filter(Stim == current_stim)
@@ -827,4 +827,80 @@ make_mag_plots <- function(counts, counts_no_outlier = NULL, current_stim,
                label = test_df$p_val_text, size=5.5) +
       coord_cartesian(ylim = c(plot_ylims[[1]], plot_ylims[[2]] + 0.09*diff(plot_ylims)))
   } 
+}
+
+############################################################################################################################
+
+multi_mag_plot <- function(counts, current_status = "Pneg", fill_colors = NULL, subtitle, groups_to_compare, y_axis_text) {
+  counts <- counts %>% 
+    dplyr::filter(Status == current_status)
+  
+  counts_wide <- counts %>%
+    pivot_wider(id_cols = c(`SAMPLE ID`, Status), names_from = Stim, values_from = Freq) %>%
+    na.omit() # can't perform signed-rank test with missing data
+
+  # Signed-rank test
+  one_two_signed_rank_result <- wilcox.test(counts_wide$DMSO, counts_wide$PP1, paired = T)
+  two_three_signed_rank_result <- wilcox.test(counts_wide$PP1, counts_wide$`TB WCL`, paired = T)
+  one_three_signed_rank_result <- wilcox.test(counts_wide$DMSO, counts_wide$`TB WCL`, paired = T)
+
+  stim_x_order <- 1:3
+  counts$Stim <- factor(counts$Stim, levels = groups_to_compare)
+  names(stim_x_order) <- levels(counts$Stim)
+  test_df <- data.frame(group1 = c("DMSO", "PP1", "DMSO"),
+                        group2 = c("PP1", "TB WCL", "TB WCL"),
+                        p.val = c(one_two_signed_rank_result$p.value,
+                                  two_three_signed_rank_result$p.value,
+                                  one_three_signed_rank_result$p.value)) %>%
+    # mutate(p.adj = p.adjust(p.val, method = "bonferroni")) %>% # Strict
+    mutate(group1.xloc = unname(stim_x_order[group1]),
+           group2.xloc = unname(stim_x_order[group2]),
+           p_val_text = sapply(p.val, function(p) {
+             if(p < 0.001) {
+               "p<0.001"
+             } else {
+               paste0("p=", round(p, 3))
+             }
+           }),
+           y_pos = c(counts %>% dplyr::filter(Stim %in% c("DMSO", "PP1")) %>%
+                       dplyr::pull(Freq) %>% max() + 0.1*diff(range(counts %>% dplyr::pull(Freq))),
+                     counts %>% dplyr::filter(Stim %in% c("PP1", "TB WCL")) %>%
+                       dplyr::pull(Freq) %>% max() + 0.1*diff(range(counts %>% dplyr::pull(Freq))),
+                     counts %>% dplyr::filter(Stim %in% c("DMSO", "PP1", "TB WCL")) %>%
+                       dplyr::pull(Freq) %>% max() + 0.25*diff(range(counts %>% dplyr::pull(Freq)))),
+           geom_signif_group = paste0(group1, group2))
+
+  medians <- counts %>% group_by(Stim) %>%
+    summarise(med = median(Freq)) %>% ungroup() %>%
+    mutate(x.min.segment = 1:3 - 0.1,
+           x.end.segment = 1:3 + 0.1)
+  
+  current_plot <- ggplot(counts, aes(Stim, Freq)) +
+    geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
+    geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol("Status"))) +
+    labs(y = y_axis_text,
+         title = current_status,
+         subtitle = subtitle) +
+    theme_bw() +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_text(size=20),
+          axis.text.y = element_text(color="black", size=17),
+          axis.text.x = element_text(color="black", size=17),
+          plot.title = element_text(hjust = 0.5, size=21),
+          plot.subtitle = element_text(hjust = 0.5, size=13),
+          panel.grid.major.x = element_blank(),
+          legend.position = "none",
+          plot.margin = margin(0.3, 0.2, 0.1, 0.2, "cm")) +
+    scale_x_discrete(expand = c(0.15, 0.15),
+                     labels = groups_to_compare) +
+    scale_color_manual(values = fill_colors[[current_status]]) +
+    ggsignif::geom_signif(inherit.aes=F,data=test_df,
+                          aes_string(xmin="group1.xloc", xmax="group2.xloc",
+                                     annotations="p_val_text", y_position="y_pos",
+                                     group="geom_signif_group"), 
+                          tip_length = c(0, 0),
+                          textsize=5,
+                          size = 0.75,
+                          manual = TRUE) +
+    coord_cartesian(ylim = c(NA, max(test_df$y_pos) + 0.1*diff(range(counts %>% dplyr::pull(Freq)))))
 }
