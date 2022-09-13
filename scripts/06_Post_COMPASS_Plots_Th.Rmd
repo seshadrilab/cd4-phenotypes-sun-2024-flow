@@ -330,8 +330,37 @@ names(fs_plots) <- paste0(rep(c("CD4", "CD8"), each = 2), "_", rep(c("PP1", "TB_
 fs_plots
 ```
 
-# Save output
+# Save figures
 
 ```{r}
-
+if(save_output) {
+  cairo_pdf(file=here::here("out/post_compass_plots/Th_CD4_COMPASS_Heatmap.pdf"), width=5, height=8,
+        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  print(draw(cd4_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom"))
+  dev.off()
+  
+  cairo_pdf(file=here::here("out/post_compass_plots/Th_CD8_COMPASS_Heatmap.pdf"), width=5, height=8,
+        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica
+  print(draw(cd8_heatmap, gap = unit(0.1, "in"), merge_legends = T, heatmap_legend_side = "bottom", annotation_legend_side = "bottom"))
+  dev.off()
+  
+  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/Th_CD4_boxplots.pdf"), width=10, height=6,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  grid.draw(th_cd4_bg_corr_boxplots[["CD4_PP1"]]$Plot)
+  grid.newpage()
+  grid.draw(th_cd4_bg_corr_boxplots[["CD4_TB_WCL"]]$Plot)
+  dev.off()
+  
+  cairo_pdf(file=here::here("out/post_compass_plots/magnitude_plots/Th_CD8_boxplots.pdf"), width=10, height=6,
+            onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  grid.draw(th_cd8_bg_corr_boxplots[["CD8_PP1"]]$Plot)
+  grid.newpage()
+  grid.draw(th_cd8_bg_corr_boxplots[["CD8_TB_WCL"]]$Plot)
+  dev.off()
+  
+  cairo_pdf(file=here::here("out/post_compass_plots/fs_plots/th_fs_plots.pdf"), width=4, height=5,
+        onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+  print(fs_plots)
+  dev.off()
+}
 ```
