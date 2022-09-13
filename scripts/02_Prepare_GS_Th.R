@@ -5,6 +5,7 @@ library(ggcyto)
 library(here)
 library(tidyverse)
 library(readxl)
+library(ggpubr)
 
 ## Create directories if needed ## 
 if(!dir.exists(here::here("data"))) {
@@ -44,7 +45,7 @@ if(!dir.exists(here::here("out/GatingSets"))) {
 
 ## Load data ##
 xml_path_b1 <- here::here("data/20220415 RSTR INS Th B1VF1.xml")
-xml_path_b2 <- here::here("data/20220801 RSTR INS Th B2VF1.xml")
+xml_path_b2 <- here::here("data/20220829 RSTR INS Th B2VF1.xml")
 fcs_subfolder_b1 <- here::here("data/20220415_RSTR_INS_Th_FCS_B1/")
 fcs_subfolder_b2 <- here::here("data/20220429_RSTR_INS_Th_FCS_B2/")
 ws_b1 <- open_flowjo_xml(xml_path_b1)
@@ -145,7 +146,7 @@ save_gs(gs, here::here("out/GatingSets/RSTR_Th_GatingSet"))
 
 ## Perform QC ##
 # Load gating set if needed: 
-#gs <- load_gs(here::here("out/GatingSets/RSTR_Th_GatingSet"))
+# gs <- load_gs(here::here("out/GatingSets/RSTR_Th_GatingSet"))
 
 dput(gh_get_pop_paths(gs))
 
@@ -290,5 +291,120 @@ for(pop in nodes_short[4:length(nodes_short)]) {
   png(file=here::here(sprintf("out/QC/DMSO_Signal/Th_%s_vs_Status.png", 
                               sub("\\/", "_", pop))), width=300, height=265, units = "px")
   print(plot_pop(pop))
+  dev.off()
+}
+
+## Check for batch effect ##
+# Load gating set if needed: 
+# gs <- load_gs(here::here("out/GatingSets/RSTR_Th_GatingSet"))
+
+# Get nodes of interest (include parent nodes and markers of interest)
+dput(gh_get_pop_paths(gs))
+nodes <- c("/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CXCR3+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CCR6+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/TBET+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/RORyT+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IFNg+", 
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IL17a/IL17a+", 
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD137+", 
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD154+", 
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CTLA4+", 
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/OX40+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CXCR3+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CCR6+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/TBET+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/RORyT+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/IFNg+", 
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/IL17a/IL17a+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CD137+", 
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CD154+", 
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CTLA4+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/OX40+")
+nodes_short <- str_replace(nodes, "\\/Time\\/Cells\\/CD3\\+\\CD14\\-\\CD19\\-\\/Singlets\\/Live\\/CD3\\+\\ Lymphocytes\\/CD4 Positive\\/", "")
+nodes_short <- str_replace(nodes_short, "\\/Time\\/Cells\\/CD3\\+\\CD14\\-\\CD19\\-\\/Singlets\\/Live\\/CD3\\+\\ Lymphocytes\\/CD4 Negative\\/", "")
+nodes_short <- str_replace(nodes_short, "\\/IL17a\\/", "/")
+
+# Add shortened experiment name
+pData(gs)$`EXPERIMENT NAME`  <- str_replace_all(pData(gs)$`EXPERIMENT NAME`,
+                                                "20220415 RSTR INS Th B1",
+                                                "B1")
+
+pData(gs)$`EXPERIMENT NAME`  <- str_replace_all(pData(gs)$`EXPERIMENT NAME`,
+                                                "20220429 RSTR INS Th B2",
+                                                "B2")
+
+pData(gs)$`EXPERIMENT NAME` <- factor(pData(gs)$`EXPERIMENT NAME`, levels = c("B1", "B2"))
+
+# Get counts
+dmso_count <- subset(gs, Stim == "DMSO") %>%
+  gs_pop_get_count_with_meta(subpopulations = nodes) %>%
+  pivot_wider(names_from = Population, values_from = Count) %>%
+  rename_at(vars(all_of(nodes)), ~ nodes_short) 
+
+pp1_count <- subset(gs, Stim == "PP1") %>%
+  gs_pop_get_count_with_meta(subpopulations = nodes) %>%
+  pivot_wider(names_from = Population, values_from = Count) %>%
+  rename_at(vars(all_of(nodes)), ~ nodes_short) 
+
+tbwcl_count <- subset(gs, Stim == "TB WCL") %>%
+  gs_pop_get_count_with_meta(subpopulations = nodes) %>%
+  pivot_wider(names_from = Population, values_from = Count) %>%
+  rename_at(vars(all_of(nodes)), ~ nodes_short) 
+
+# Plot DMSO frequencies and perform Wilcoxon rank-sum test between batches
+# Argument "pop" is the list of nodes of interest
+fill_colors <- c("Pneg" = "#984EA3", "TST+" = "#4DAF4A")
+
+plot_pop <- function(pop, counts) {     
+  parent <- sub("(.*)\\/.*", "\\1", pop)
+  tmp_dat <- counts %>%
+    mutate(prop = !!as.name(pop) / ParentCount)
+  # wilcox_p <- wilcox.test(prop ~ `EXPERIMENT NAME`, data = tmp_dat, paired = FALSE)$p.value
+  # p.unadj.text <- sprintf("Wilcoxon Rank-Sum Test: p-unadj%s",
+  #                         if_else(wilcox_p < 0.001, "<0.001", paste0("=", sub("0.", ".", round(wilcox_p, 3)))))
+  
+  ggplot(tmp_dat, aes(`EXPERIMENT NAME`, prop)) +
+    geom_boxplot(outlier.shape = NA) +
+    theme_bw(base_size = 22) +
+    geom_jitter(width = 0.15, height = 0, pch = 16, aes(color=!!as.symbol("Status"))) +
+    labs(title = tmp_dat$Stim,
+         y = sprintf("%% %s of %s", sub(".*\\/(.*)", "\\1", pop), parent), 
+         caption = "Th Panel Batches") +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_text(size=22),
+          axis.text.y = element_text(color="black", size=15),
+          axis.text.x = element_text(color="black", size=15),
+          plot.title = element_text(size=17, hjust=0.5),
+          plot.caption = element_text(size=12),
+          panel.grid.major.x = element_blank(),
+          legend.position = "none",
+          plot.margin = margin(1.3, 0.2, 0, 0.2, "cm")) +
+    scale_y_continuous(labels = function(x) paste0(x*100)) +
+    scale_color_manual(values = fill_colors) +
+    facet_wrap(~ Status) +
+    stat_compare_means(comparisons = list(c("B1", "B2")), label = "p.format",
+                       method = "wilcox.test", paired = FALSE, tip.length = 0)
+}
+
+for(pop in nodes_short[4:length(nodes_short)]) {
+  png(file=here::here(sprintf("out/QC/Batch_Effect/Th_DMSO_%s_vs_Batch.png", 
+                              sub("\\/", "_", pop))), width=450, height=450, units = "px")
+  print(plot_pop(pop, counts = dmso_count))
+  dev.off()
+}
+
+for(pop in nodes_short[4:length(nodes_short)]) {
+  png(file=here::here(sprintf("out/QC/Batch_Effect/Th_PP1_%s_vs_Batch.png", 
+                              sub("\\/", "_", pop))), width=450, height=450, units = "px")
+  print(plot_pop(pop, counts = pp1_count))
+  dev.off()
+}
+
+for(pop in nodes_short[4:length(nodes_short)]) {
+  png(file=here::here(sprintf("out/QC/Batch_Effect/Th_TBWCL_%s_vs_Batch.png", 
+                              sub("\\/", "_", pop))), width=450, height=450, units = "px")
+  print(plot_pop(pop, counts = tbwcl_count))
   dev.off()
 }
