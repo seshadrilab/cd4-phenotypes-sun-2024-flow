@@ -34,9 +34,11 @@ seeds_for_compass_runs <- as.list(date:(date + length(stims_for_compass_runs)*le
 stims_for_compass_runs_rep <- rep(stims_for_compass_runs, each = length(parent_nodes_for_compass_runs))
 parent_nodes_for_compass_runs_rep <- rep(parent_nodes_for_compass_runs, times = length(stims_for_compass_runs))
 
-
 # mapMarkers contains output of markernames(gs)
 mapMarkers <- list("CD154", "CD137", "CTLA4", "OX40") 
+
+# Set category filter to only retain subsets for which at least three samples had at least 60 cells expressing it
+category_filter_function <- function(x) colSums(x > 59) > 2
 
 future::supportsMulticore() # Run in terminal to get TRUE
 # If you run this script in RStudio, the next line throws the following warning:
@@ -62,7 +64,7 @@ system.time({
                                 currentNodeMarkerMap <- mapMarkers
                                 # currentNodeMarkerMap names are gating tree paths
                                 names(currentNodeMarkerMap) <- paste0(parent, "/", c("CD154+", "CD137+", "CTLA4+", "OX40+"))
-                                outDir <- here::here(sprintf("out/Treg_CompassOutput/%s/%s", parent, gsub(" ", "_", currentStim)))
+                                outDir <- here::here(sprintf("out/Treg_CompassOutput_filtered/%s/%s", parent, gsub(" ", "_", currentStim)))
                                 if(!dir.exists(outDir)) {
                                   dir.create(outDir, recursive = T)
                                 }
@@ -77,8 +79,9 @@ system.time({
                                                currentTreatment=currentStim,
                                                currentControl="DMSO",
                                                stratifyBy=NULL, 
-                                               iter=40000,
+                                               iter=4000,
                                                eventCountFilterThreshold=3000,
+                                               category_filter_function=category_filter_function,
                                                textForRunOutputId=paste0(parent, "_", gsub(" ", "_", currentStim)))
                                 gc()
                               }, error = function(e) { print(e) })
@@ -88,6 +91,3 @@ system.time({
                             .progress = T,
                             .options = furrr_options(seed = T))
 })
-
-# user  system elapsed 
-# 2167.97   35.42 2254.42 
