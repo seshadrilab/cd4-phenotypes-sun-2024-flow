@@ -761,7 +761,7 @@ split_fs_pfs_plot <- function(df, FS_or_PFS = "FS", current_stim = "S1",
 make_mag_plots <- function(counts, counts_no_outlier = NULL, current_stim,
                            num_comparisons, groups_to_compare, paired, adjust_p, fill_colors,
                            group_by_colname, subtitle, ylim = NULL, y_axis_text,
-                           y_axis_size) {
+                           y_axis_size, facet_by = NULL) {
   
   counts <- counts %>%
     dplyr::filter(Stim == current_stim)
@@ -774,12 +774,14 @@ make_mag_plots <- function(counts, counts_no_outlier = NULL, current_stim,
   }
   
   # P-values are unadjusted
+  fmla <- formula(paste("Freq ~ ", group_by_colname))
+  
   if(paired) {
     # Signed-rank test
-    test <- wilcox.test(Freq ~ Status, data = counts, paired = TRUE)
+    test <- wilcox.test(fmla, data = counts, paired = TRUE)
   } else {
     # Rank sum test
-    test <- wilcox.test(Freq ~ Status, data = counts, paired = FALSE)
+    test <- wilcox.test(fmla, data = counts, paired = FALSE)
   }
  
   if(adjust_p) {
@@ -791,7 +793,7 @@ make_mag_plots <- function(counts, counts_no_outlier = NULL, current_stim,
       mutate(p_val_text = if_else(p < 0.001, "p<0.001", paste0("p=", formatC(round(p, 3), format='f', digits=3))))
   }
   
-  current_plot <- ggplot(counts_to_plot, aes(x = Status, y = Freq)) +
+  current_plot <- ggplot(counts_to_plot, aes(x = !!as.symbol(group_by_colname), y = Freq)) +
     geom_boxplot(outlier.shape=NA, position = position_dodge2(preserve = "total")) +
     geom_quasirandom(size=3, shape = 16, width = 0.3, aes(color=!!as.symbol(group_by_colname))) +
     scale_color_manual(values = fill_colors) +
@@ -815,18 +817,27 @@ make_mag_plots <- function(counts, counts_no_outlier = NULL, current_stim,
     force_panelsizes(rows = unit(3.5, "in"),
                      cols = unit(3, "in"))
   
-  if(!is.null(ylim)) {
-    current_plot <- current_plot + 
-      coord_cartesian(ylim = ylim) +
-      annotate("text", x = 1.5, y = ylim[2] - 0.09*diff(ylim),
-               label = test_df$p_val_text, size=5.5)
+  if(!is.null(facet_by)) {
+    fmla2 <- formula(paste(". ~ ", facet_by))
+    current_plot <- current_plot +
+      facet_grid(fmla2) +
+      stat_compare_means(comparisons = list(groups_to_compare), label = "p.format",
+                         method = "wilcox.test", paired = FALSE, tip.length = 0)
   } else {
-    plot_ylims <- ggplot_build(current_plot)$layout$panel_params[[1]]$y.range
-    current_plot <- current_plot + 
-      annotate("text", x = 1.5, y = plot_ylims[2] + 0.01*diff(plot_ylims),
-               label = test_df$p_val_text, size=5.5) +
-      coord_cartesian(ylim = c(plot_ylims[[1]], plot_ylims[[2]] + 0.09*diff(plot_ylims)))
-  } 
+    if(!is.null(ylim)) {
+      current_plot <- current_plot + 
+        coord_cartesian(ylim = ylim) +
+        annotate("text", x = 1.5, y = ylim[2] - 0.09*diff(ylim),
+                 label = test_df$p_val_text, size=5.5)
+    } else {
+      plot_ylims <- ggplot_build(current_plot)$layout$panel_params[[1]]$y.range
+      current_plot <- current_plot + 
+        annotate("text", x = 1.5, y = plot_ylims[2] + 0.01*diff(plot_ylims),
+                 label = test_df$p_val_text, size=5.5) +
+        coord_cartesian(ylim = c(plot_ylims[[1]], plot_ylims[[2]] + 0.09*diff(plot_ylims)))
+    } 
+  }
+
 }
 
 ############################################################################################################################
