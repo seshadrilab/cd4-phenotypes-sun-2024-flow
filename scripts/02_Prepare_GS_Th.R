@@ -225,32 +225,36 @@ low_count # None for CD4 and CD8, but 6 samples have low DN count. Nothing to dr
 # Load gating set if needed: 
 # gs <- load_gs(here::here("out/GatingSets/RSTR_Th_GatingSet"))
 
+# Add IL17a+ gate directly under CD4+ and CD8+
+cd4_il17a_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IL17a/IL17a+"
+cd8_il17a_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/IL17a/IL17a+"
+
+gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_il17a_path),
+           parent = "CD4+", name = "IL17a+")
+gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_il17a_path),
+           parent = "CD8+", name = "IL17a+")
+
+recompute(gs)
+
 # Get nodes of interest (include parent nodes and markers of interest)
 dput(gh_get_pop_paths(gs))
 nodes <- c("/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/DN",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IFNg+", 
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IL17a/IL17a+", 
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IL17a+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD137+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD154+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CTLA4+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/OX40+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/IFNg+", 
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/IL17a/IL17a+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/IL17a+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CD137+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CD154+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CTLA4+",
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/OX40+",
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/DN/IFNg+", 
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/DN/IL17a/IL17a+",
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/DN/CD137+", 
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/DN/CD154+", 
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/DN/CTLA4+",
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/DN/OX40+")
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/OX40+")
 nodes_short <- str_replace(nodes, "\\/Time\\/Cells\\/CD3\\+\\CD14\\-\\CD19\\-\\/Singlets\\/Live\\/CD3\\+\\ Lymphocytes\\/CD4 Positive\\/", "")
 nodes_short <- str_replace(nodes_short, "\\/Time\\/Cells\\/CD3\\+\\CD14\\-\\CD19\\-\\/Singlets\\/Live\\/CD3\\+\\ Lymphocytes\\/CD4 Negative\\/", "")
-nodes_short <- str_replace(nodes_short, "\\/IL17a\\/", "/")
 
 # Get DMSO counts
 dmso_freq <- subset(gs, Stim == "DMSO") %>%
@@ -298,33 +302,47 @@ for(pop in nodes_short[4:length(nodes_short)]) {
 # Load gating set if needed: 
 # gs <- load_gs(here::here("out/GatingSets/RSTR_Th_GatingSet"))
 
+# Add IL17a+ gate directly under CD4+ and CD8+
+cd4_il17a_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IL17a/IL17a+"
+cd8_il17a_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/IL17a/IL17a+"
+
+gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_il17a_path),
+           parent = "CD4+", name = "IL17a+")
+gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_il17a_path),
+           parent = "CD8+", name = "IL17a+")
+
+recompute(gs)
+
 # Get nodes of interest (include parent nodes and markers of interest)
 dput(gh_get_pop_paths(gs))
 nodes <- c("/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD45RA+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CCR7+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CXCR3+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CCR6+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/TBET+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/RORyT+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IFNg+", 
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IL17a/IL17a+", 
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IL17a+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD137+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD154+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CTLA4+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/OX40+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CD45RA+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CCR7+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CXCR3+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CCR6+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/TBET+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/RORyT+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/IFNg+", 
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/IL17a/IL17a+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/IL17a+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CD137+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CD154+", 
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/CTLA4+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Negative/CD8+/OX40+")
 nodes_short <- str_replace(nodes, "\\/Time\\/Cells\\/CD3\\+\\CD14\\-\\CD19\\-\\/Singlets\\/Live\\/CD3\\+\\ Lymphocytes\\/CD4 Positive\\/", "")
 nodes_short <- str_replace(nodes_short, "\\/Time\\/Cells\\/CD3\\+\\CD14\\-\\CD19\\-\\/Singlets\\/Live\\/CD3\\+\\ Lymphocytes\\/CD4 Negative\\/", "")
-nodes_short <- str_replace(nodes_short, "\\/IL17a\\/", "/")
 
 # Add shortened experiment name
 pData(gs)$`EXPERIMENT NAME`  <- str_replace_all(pData(gs)$`EXPERIMENT NAME`,
@@ -335,7 +353,7 @@ pData(gs)$`EXPERIMENT NAME`  <- str_replace_all(pData(gs)$`EXPERIMENT NAME`,
                                                 "20220429 RSTR INS Th B2",
                                                 "B2")
 
-pData(gs)$`EXPERIMENT NAME` <- factor(pData(gs)$`EXPERIMENT NAME`, levels = c("B1", "B2"))
+pData(gs)$Batch <- factor(pData(gs)$`EXPERIMENT NAME`, levels = c("B1", "B2"))
 
 # Get counts
 dmso_count <- subset(gs, Stim == "DMSO") %>%
@@ -388,21 +406,21 @@ plot_pop <- function(pop, counts) {
                        method = "wilcox.test", paired = FALSE, tip.length = 0)
 }
 
-for(pop in nodes_short[4:length(nodes_short)]) {
+for(pop in nodes_short[3:length(nodes_short)]) {
   png(file=here::here(sprintf("out/QC/Batch_Effect/Th_DMSO_%s_vs_Batch.png", 
                               sub("\\/", "_", pop))), width=450, height=450, units = "px")
   print(plot_pop(pop, counts = dmso_count))
   dev.off()
 }
 
-for(pop in nodes_short[4:length(nodes_short)]) {
+for(pop in nodes_short[3:length(nodes_short)]) {
   png(file=here::here(sprintf("out/QC/Batch_Effect/Th_PP1_%s_vs_Batch.png", 
                               sub("\\/", "_", pop))), width=450, height=450, units = "px")
   print(plot_pop(pop, counts = pp1_count))
   dev.off()
 }
 
-for(pop in nodes_short[4:length(nodes_short)]) {
+for(pop in nodes_short[3:length(nodes_short)]) {
   png(file=here::here(sprintf("out/QC/Batch_Effect/Th_TBWCL_%s_vs_Batch.png", 
                               sub("\\/", "_", pop))), width=450, height=450, units = "px")
   print(plot_pop(pop, counts = tbwcl_count))
