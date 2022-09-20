@@ -439,21 +439,21 @@ plot_pop <- function(pop, counts) {
 
 plot_pop(nodes_short[[3]], counts = dmso_count) # The first two nodes in the list are parent nodes
 
-for(pop in nodes_short[4:length(nodes_short)]) {
+for(pop in nodes_short[3:length(nodes_short)]) {
   png(file=here::here(sprintf("out/QC/Batch_Effect/Treg_DMSO_%s_vs_Batch.png", 
                               sub("\\/", "_", pop))), width=450, height=450, units = "px")
   print(plot_pop(pop, counts = dmso_count))
   dev.off()
 }
 
-for(pop in nodes_short[4:length(nodes_short)]) {
+for(pop in nodes_short[3:length(nodes_short)]) {
   png(file=here::here(sprintf("out/QC/Batch_Effect/Treg_PP1_%s_vs_Batch.png", 
                               sub("\\/", "_", pop))), width=450, height=450, units = "px")
   print(plot_pop(pop, counts = pp1_count))
   dev.off()
 }
 
-for(pop in nodes_short[4:length(nodes_short)]) {
+for(pop in nodes_short[3:length(nodes_short)]) {
   png(file=here::here(sprintf("out/QC/Batch_Effect/Treg_TBWCL_%s_vs_Batch.png", 
                               sub("\\/", "_", pop))), width=450, height=450, units = "px")
   print(plot_pop(pop, counts = tbwcl_count))
