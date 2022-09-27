@@ -9,18 +9,18 @@ library(ggpubr)
 
 ## Create directories if needed ## 
 if(!dir.exists(here::here("data"))) {
-  cat(sprintf("Creating folder %s\n", here::here("out/QC")))
-  dir.create(here::here("out/QC"), recursive = T)
+  cat(sprintf("Creating folder %s\n", here::here("data")))
+  dir.create(here::here("data"), recursive = T)
 }
 
 if(!dir.exists(here::here("out"))) {
-  cat(sprintf("Creating folder %s\n", here::here("out/QC")))
-  dir.create(here::here("out/QC"), recursive = T)
+  cat(sprintf("Creating folder %s\n", here::here("out")))
+  dir.create(here::here("out"), recursive = T)
 }
 
 if(!dir.exists(here::here("scripts"))) {
-  cat(sprintf("Creating folder %s\n", here::here("out/QC")))
-  dir.create(here::here("out/QC"), recursive = T)
+  cat(sprintf("Creating folder %s\n", here::here("scripts")))
+  dir.create(here::here("scripts"), recursive = T)
 }
 
 if(!dir.exists(here::here("out/QC"))) {
