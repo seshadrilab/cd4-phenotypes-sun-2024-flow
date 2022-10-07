@@ -7,6 +7,9 @@ library(ggplot2)
 library(ggdendro)
 library(ComplexHeatmap)
 library(stringr)
+library(ggbeeswarm)
+library(ggh4x)
+source(here::here("scripts/Helper_Functions.R"))
 
 # Load gating set 
 gs <- load_gs(here::here("out/GatingSets/RSTR_Treg_GatingSet"))
@@ -161,9 +164,9 @@ sum(str_count(subpops, "CD4\\-.*CD8a\\-"))
 # Find which subpopulations are Tregs (CD4+FOXP3+CD25+)
 str_count(subpops, "CD4\\+.*CD8a\\-.*FOXP3\\+.*CD25\\+")
 which(grepl("CD4\\+.*CD8a\\-.*FOXP3\\+.*CD25\\+", subpops))
-subpops[39]
-subpops[45]
-subpops[49]
+subpops[39] # Treg subpop 1
+subpops[45] # Treg subpop 2
+subpops[49] # Treg subpop 3
 
 # Generate bivariate dotplots showing the gating strategies to gate out discovered cell pops
 # count_df <- as.data.frame(countMatrix) %>% 
@@ -174,11 +177,117 @@ subpops[49]
 #   select(-c(sample, Status, `WELL ID`, name, `EXPERIMENT NAME`, `SAMPLE ID`, Stim, `PLATE NAME`, `$DATE`)) %>%
 #   column_to_rownames("sample_desc")
 
-pops <- names(which(colSums(countMatrix) > 1000)) # At least 1000 cells across all samples
-pops <- setdiff(pops,"0_0_0_0_0") # We don't want plots for the not-annotated cells.
+treg_pops <- c(subpops[39], subpops[45], subpops[49])
 
-for (col in pops) {
+for (col in treg_pops) {
   for (r in rownames(countMatrix)) {
     faust:::plotFaustGates(col, r, faust_path)
   }
 }
+
+# Grab CD4 gate paths
+cd4_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+"
+cd8_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+"
+cd4_cd154_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD154+"
+cd4_cd137_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD137+"
+cd4_ox40_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/OX40+"
+cd4_ctla4_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CTLA4+"
+cd4_foxp3_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/FOXP3+"
+cd4_cd25_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD25+"
+cd4_cd39_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD39+"
+cd4_cd73_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD73+"
+cd4_ccr7_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CCR7+"
+cd4_il10_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/IL10+"
+
+# Add Treg boolean gates
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_path,
+                                                         "&!", cd4_ccr7_path,
+                                                         "&!", cd8_path,
+                                                         "&!", cd4_cd73_path,
+                                                         "&", cd4_cd39_path,
+                                                         "&", cd4_il10_path,
+                                                         "&", cd4_ox40_path,
+                                                         "&", cd4_foxp3_path,
+                                                         "&", cd4_cd137_path,
+                                                         "&", cd4_cd25_path,
+                                                         "&!", cd4_cd154_path,
+                                                         "&", cd4_ctla4_path))))),
+           parent = "CD3+ Lymphocytes", name = "Treg_FAUST_1")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_path,
+                                                         "&", cd4_ccr7_path,
+                                                         "&!", cd8_path,
+                                                         "&!", cd4_cd73_path,
+                                                         "&!", cd4_cd39_path,
+                                                         "&", cd4_il10_path,
+                                                         "&", cd4_ox40_path,
+                                                         "&", cd4_foxp3_path,
+                                                         "&", cd4_cd137_path,
+                                                         "&", cd4_cd25_path,
+                                                         "&!", cd4_cd154_path,
+                                                         "&", cd4_ctla4_path))))),
+           parent = "CD3+ Lymphocytes", name = "Treg_FAUST_2")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_path,
+                                                         "&", cd4_ccr7_path,
+                                                         "&!", cd8_path,
+                                                         "&!", cd4_cd73_path,
+                                                         "&", cd4_cd39_path,
+                                                         "&", cd4_il10_path,
+                                                         "&", cd4_ox40_path,
+                                                         "&", cd4_foxp3_path,
+                                                         "&", cd4_cd137_path,
+                                                         "&", cd4_cd25_path,
+                                                         "&!", cd4_cd154_path,
+                                                         "&", cd4_ctla4_path))))),
+           parent = "CD3+ Lymphocytes", name = "Treg_FAUST_3")
+
+# Recompute GatingSet
+recompute(gs)
+
+# Extract frequencies
+treg_1_node <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/Treg_FAUST_1"
+treg_2_node <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/Treg_FAUST_2" 
+treg_3_node <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/Treg_FAUST_3" 
+
+treg_1_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = treg_1_node), by = c("rowname" = "name")) %>%
+  dplyr::rename(Subpop = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
+  mutate(Freq = (Subpop/ParentCount)*100)
+treg_1_counts$Status <- factor(treg_1_counts$Status, levels = c("Pneg", "TST+"))
+
+treg_2_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = treg_2_node), by = c("rowname" = "name")) %>%
+  dplyr::rename(Subpop = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
+  mutate(Freq = (Subpop/ParentCount)*100)
+treg_2_counts$Status <- factor(treg_1_counts$Status, levels = c("Pneg", "TST+"))
+
+treg_3_counts <- pData(gs) %>%
+  tibble::rownames_to_column("rowname") %>%
+  left_join(gs_pop_get_count_fast(gs, subpopulations = treg_3_node), by = c("rowname" = "name")) %>%
+  dplyr::rename(Subpop = Count) %>%
+  dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
+  mutate(Freq = (Subpop/ParentCount)*100)
+treg_3_counts$Status <- factor(treg_1_counts$Status, levels = c("Pneg", "TST+"))
+
+# Set color scheme and stims
+fill_colors <- c("Pneg" = "#984EA3", "TST+" = "#4DAF4A")
+stims <- c("DMSO", "PP1", "TB WCL")
+status <- c("Pneg", "TST+")
+
+# Plot frequencies
+treg_1_plots <- purrr::pmap(.l = list(stims),
+                           .f = function(n) {
+                             make_mag_plots(treg_1_counts, current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                            paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = subpops[39],
+                                            y_axis_text = "% CD3+ T Cells", y_axis_size = 15,   ylim = c(0, 0.00005))
+                           })
+names(treg_1_plots) <- stims
+treg_1_plots
