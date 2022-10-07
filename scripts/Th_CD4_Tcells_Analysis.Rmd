@@ -124,6 +124,46 @@ gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                                          "&!", cd4_tbet_path))))),
            parent = "CD4_CD154+_OR_CD137+", name = "RORyT-TBET-")
 
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_ccr7_path,
+                                                         "&", cd4_cd45ra_path))))),
+           parent = "RORyT-TBET-", name = "Naive")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_ccr7_path,
+                                                         "&!", cd4_cd45ra_path))))),
+           parent = "RORyT-TBET-", name = "TCM")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd4_ccr7_path,
+                                                         "&", cd4_cd45ra_path))))),
+           parent = "RORyT-TBET-", name = "TEMRA")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd4_ccr7_path,
+                                                         "&!", cd4_cd45ra_path))))),
+           parent = "RORyT-TBET-", name = "TEM")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_ccr7_path,
+                                                         "&", cd4_cd45ra_path))))),
+           parent = "RORyT+TBET-", name = "Naive")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_ccr7_path,
+                                                         "&!", cd4_cd45ra_path))))),
+           parent = "RORyT+TBET-", name = "TCM")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd4_ccr7_path,
+                                                         "&", cd4_cd45ra_path))))),
+           parent = "RORyT+TBET-", name = "TEMRA")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd4_ccr7_path,
+                                                         "&!", cd4_cd45ra_path))))),
+           parent = "RORyT+TBET-", name = "TEM")
+
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_cxcr3_path),
            parent = "CD4_CD154+_OR_CD137+", name = "CXCR3+")
 
@@ -269,6 +309,37 @@ names(count_list) <- nodes_short
 fill_colors <- c("Pneg" = "#984EA3", "TST+" = "#4DAF4A")
 stims <- c("DMSO", "PP1", "TB WCL")
 status <- c("Pneg", "TST+")
+```
+
+Pull out memory phenotype frequencies of RORyT+TBET- and RORyT-TBET- cells
+
+```{r}
+nodes_th17 <- c("/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD4_CD154+_OR_CD137+/RORyT+TBET-/Naive",
+                "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD4_CD154+_OR_CD137+/RORyT+TBET-/TCM",
+                "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD4_CD154+_OR_CD137+/RORyT+TBET-/TEM",
+                "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD4_CD154+_OR_CD137+/RORyT+TBET-/TEMRA",
+                "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD4_CD154+_OR_CD137+/RORyT-TBET-/Naive",
+                "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD4_CD154+_OR_CD137+/RORyT-TBET-/TCM",
+                "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD4_CD154+_OR_CD137+/RORyT-TBET-/TEM",
+                "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/CD4_CD154+_OR_CD137+/RORyT-TBET-/TEMRA")
+nodes_short_th17 <- str_replace(nodes_th17, "\\/Time\\/Cells\\/CD3\\+\\CD14\\-\\CD19\\-\\/Singlets\\/Live\\/CD3\\+\\ Lymphocytes\\/CD4 Positive\\/CD4\\+\\/CD4\\_\\CD154\\+\\_\\OR\\_\\CD137\\+\\/RORyT\\+\\TBET\\-\\/", "")
+nodes_short_th17 <- str_replace(nodes_short_th17, "\\/Time\\/Cells\\/CD3\\+\\CD14\\-\\CD19\\-\\/Singlets\\/Live\\/CD3\\+\\ Lymphocytes\\/CD4 Positive\\/CD4\\+\\/CD4\\_\\CD154\\+\\_\\OR\\_\\CD137\\+\\/RORyT\\-\\TBET\\-\\/", "")
+
+count_list_th17 <- list()
+
+for(pop in nodes_th17) {
+  current_counts <- pData(gs) %>%
+    tibble::rownames_to_column("rowname") %>%
+    left_join(gs_pop_get_count_fast(gs, subpopulations = pop), by = c("rowname" = "name")) %>%
+    dplyr::rename(Subpop = Count) %>%
+    dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
+    mutate(Freq = (Subpop/ParentCount)*100)
+  
+  current_counts$Status <- factor(current_counts$Status, levels = c("Pneg", "TST+"))
+  count_list_th17[[pop]] <- current_counts
+}
+
+names(count_list_th17) <- nodes_short_th17
 ```
 
 # CD154|CD137
@@ -611,6 +682,84 @@ names(ccr6_roryt_plots ) <- stims
 ccr6_roryt_plots 
 ```
 
+# Memory phenotypes of RORyT+TBET- CD154+|CD137+ CD4 T cells
+```{r}
+roryt_naive_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list_th17[[1]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[1],
+                                                 y_axis_text = "% RORyT+TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 20))
+                                })
+names(roryt_naive_plots ) <- stims
+roryt_naive_plots 
+
+roryt_tcm_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list_th17[[2]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[2],
+                                                 y_axis_text = "% RORyT+TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(55, 100))
+                                })
+names(roryt_tcm_plots) <- stims
+roryt_tcm_plots 
+
+roryt_tem_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list_th17[[3]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[3],
+                                                 y_axis_text = "% RORyT+TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 50))
+                                })
+names(roryt_tem_plots ) <- stims
+roryt_tem_plots 
+
+roryt_temra_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list_th17[[4]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[4],
+                                                 y_axis_text = "% RORyT+TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 8))
+                                })
+names(roryt_temra_plots ) <- stims
+roryt_temra_plots 
+```
+
+# Memory phenotypes of RORyT-TBET- CD154+|CD137+ CD4 T cells
+```{r}
+roryt_tbet_dn_naive_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list_th17[[5]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[5],
+                                                 y_axis_text = "% RORyT-TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 75))
+                                })
+names(roryt_tbet_dn_naive_plots ) <- stims
+roryt_tbet_dn_naive_plots 
+
+roryt_tbet_dn_tcm_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list_th17[[6]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[6],
+                                                 y_axis_text = "% RORyT-TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
+                                })
+names(roryt_tbet_dn_tcm_plots) <- stims
+roryt_tbet_dn_tcm_plots 
+
+roryt_tbet_dn_tem_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list_th17[[7]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[7],
+                                                 y_axis_text = "% RORyT-TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 25))
+                                })
+names(roryt_tbet_dn_tem_plots ) <- stims
+roryt_tbet_dn_tem_plots 
+
+roryt_tbet_dn_temra_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list_th17[[8]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[8],
+                                                 y_axis_text = "% RORyT-TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 4))
+                                })
+names(roryt_tbet_dn_temra_plots ) <- stims
+roryt_tbet_dn_temra_plots 
+```
+
 # Save plots 
 
 ```{r}
@@ -800,5 +949,61 @@ cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_CCR6_of_RORyT_plots
 print(ccr6_roryt_plots[["DMSO"]])
 print(ccr6_roryt_plots[["PP1"]])
 print(ccr6_roryt_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_RORyT_Naive_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(roryt_naive_plots[["DMSO"]])
+print(roryt_naive_plots[["PP1"]])
+print(roryt_naive_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_RORyT_TCM_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(roryt_tcm_plots[["DMSO"]])
+print(roryt_tcm_plots[["PP1"]])
+print(roryt_tcm_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_RORyT_TEM_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(roryt_tem_plots[["DMSO"]])
+print(roryt_tem_plots[["PP1"]])
+print(roryt_tem_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_RORyT_TEMRA_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(roryt_temra_plots[["DMSO"]])
+print(roryt_temra_plots[["PP1"]])
+print(roryt_temra_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_RORyT_TBET_DN_Naive_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(roryt_tbet_dn_naive_plots[["DMSO"]])
+print(roryt_tbet_dn_naive_plots[["PP1"]])
+print(roryt_tbet_dn_naive_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_RORyT_TBET_DN_TCM_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(roryt_tbet_dn_tcm_plots[["DMSO"]])
+print(roryt_tbet_dn_tcm_plots[["PP1"]])
+print(roryt_tbet_dn_tcm_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_RORyT_TBET_DN_TEM_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(roryt_tbet_dn_tem_plots[["DMSO"]])
+print(roryt_tbet_dn_tem_plots[["PP1"]])
+print(roryt_tbet_dn_tem_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_RORyT_TBET_DN_TEMRA_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(roryt_tbet_dn_temra_plots[["DMSO"]])
+print(roryt_tbet_dn_temra_plots[["PP1"]])
+print(roryt_tbet_dn_temra_plots[["TB WCL"]])
 dev.off()
 ```
