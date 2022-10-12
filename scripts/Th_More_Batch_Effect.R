@@ -3,7 +3,7 @@ library(tidyverse)
 library(ggplot2)
 library(ggpubr)
 
-# The purpose of this script is to compare Pneg vs. TST+ within each batch
+# The purpose of this script is to compare RSTR vs. LTBI within each batch
 
 # Create output folder
 if(!dir.exists(here::here("out/QC/Batch_Effect_V2"))) {
@@ -86,7 +86,7 @@ tbwcl_count <- subset(gs, Stim == "TB WCL") %>%
 # Plot DMSO, PP1, and TB WCL frequencies and perform Wilcoxon rank-sum test between batches
 # Argument "pop" is the list of nodes of interest
 # Note: p-values are unadjusted
-fill_colors <- c("Pneg" = "#984EA3", "TST+" = "#4DAF4A")
+fill_colors <- c("RSTR" = "#984EA3", "LTBI" = "#4DAF4A")
 
 plot_pop <- function(pop, counts) {     
   parent <- sub("(.*)\\/.*", "\\1", pop)
@@ -114,7 +114,7 @@ plot_pop <- function(pop, counts) {
     scale_y_continuous(labels = function(x) paste0(x*100)) +
     scale_color_manual(values = fill_colors) +
     facet_wrap(~ Batch) +
-    stat_compare_means(comparisons = list(c("Pneg", "TST+")), label = "p.format",
+    stat_compare_means(comparisons = list(c("RSTR", "LTBI")), label = "p.format",
                        method = "wilcox.test", paired = FALSE, tip.length = 0)
 }
 

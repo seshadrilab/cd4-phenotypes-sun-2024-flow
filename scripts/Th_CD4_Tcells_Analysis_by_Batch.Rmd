@@ -190,7 +190,7 @@ cd154_cd137_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "Batch", Stim, Status, Subpop, ParentCount) %>%
   mutate(Freq = (Subpop/ParentCount)*100)
   
-cd154_cd137_counts$Status <- factor(cd154_cd137_counts$Status, levels = c("Pneg", "TST+"))
+cd154_cd137_counts$Status <- factor(cd154_cd137_counts$Status, levels = c("RSTR", "LTBI"))
 ```
 
 Extract the frequencies of CD137+ CD4 T cells.
@@ -203,7 +203,7 @@ cd137_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "Batch", Stim, Status, Subpop, ParentCount) %>%
   mutate(Freq = (Subpop/ParentCount)*100)
   
-cd137_counts$Status <- factor(cd137_counts$Status, levels = c("Pneg", "TST+"))
+cd137_counts$Status <- factor(cd137_counts$Status, levels = c("RSTR", "LTBI"))
 ```
 
 Extract the frequencies of CCR6+ RORyT+TBET- CD154+|CD137+ CD4 T cells.
@@ -218,7 +218,7 @@ ccr6_roryt_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "Batch", Stim, Status, Subpop, ParentCount) %>%
   mutate(Freq = (Subpop/ParentCount)*100)
   
-ccr6_roryt_counts$Status <- factor(ccr6_roryt_counts$Status, levels = c("Pneg", "TST+"))
+ccr6_roryt_counts$Status <- factor(ccr6_roryt_counts$Status, levels = c("RSTR", "LTBI"))
 ```
 
 Next, extract the frequencies of all other markers.
@@ -259,7 +259,7 @@ for(pop in nodes) {
     dplyr::select(rowname, "SAMPLE ID", "Batch", Stim, Status, Subpop, ParentCount) %>%
     mutate(Freq = (Subpop/ParentCount)*100)
   
-  current_counts$Status <- factor(current_counts$Status, levels = c("Pneg", "TST+"))
+  current_counts$Status <- factor(current_counts$Status, levels = c("RSTR", "LTBI"))
   count_list[[pop]] <- current_counts
 }
 
@@ -272,7 +272,7 @@ stims <- c("DMSO", "PP1", "TB WCL")
 
 # CD154|CD137
 
-Compare between Pneg vs. TST+.
+Compare between RSTR vs. LTBI.
 
 ```{r, fig.width=4, fig.height=5}
 cd154_cd137_plots_status <- purrr::pmap(.l = list(stims),

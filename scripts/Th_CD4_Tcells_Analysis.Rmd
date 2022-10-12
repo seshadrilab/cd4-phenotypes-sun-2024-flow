@@ -230,7 +230,7 @@ cd154_cd137_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
   mutate(Freq = (Subpop/ParentCount)*100)
   
-cd154_cd137_counts$Status <- factor(cd154_cd137_counts$Status, levels = c("Pneg", "TST+"))
+cd154_cd137_counts$Status <- factor(cd154_cd137_counts$Status, levels = c("RSTR", "LTBI"))
 ```
 
 Extract the frequencies of CD137+ CD4 T cells.
@@ -243,7 +243,7 @@ cd137_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
   mutate(Freq = (Subpop/ParentCount)*100)
   
-cd137_counts$Status <- factor(cd137_counts$Status, levels = c("Pneg", "TST+"))
+cd137_counts$Status <- factor(cd137_counts$Status, levels = c("RSTR", "LTBI"))
 ```
 
 Extract the frequencies of CCR6+ RORyT+TBET- CD154+|CD137+ CD4 T cells.
@@ -258,7 +258,7 @@ ccr6_roryt_counts <- pData(gs) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
   mutate(Freq = (Subpop/ParentCount)*100)
   
-ccr6_roryt_counts$Status <- factor(ccr6_roryt_counts$Status, levels = c("Pneg", "TST+"))
+ccr6_roryt_counts$Status <- factor(ccr6_roryt_counts$Status, levels = c("RSTR", "LTBI"))
 ```
 
 Next, extract the frequencies of all other markers.
@@ -299,16 +299,16 @@ for(pop in nodes) {
     dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
     mutate(Freq = (Subpop/ParentCount)*100)
   
-  current_counts$Status <- factor(current_counts$Status, levels = c("Pneg", "TST+"))
+  current_counts$Status <- factor(current_counts$Status, levels = c("RSTR", "LTBI"))
   count_list[[pop]] <- current_counts
 }
 
 names(count_list) <- nodes_short
 
 # Set color scheme and stims
-fill_colors <- c("Pneg" = "#984EA3", "TST+" = "#4DAF4A")
+fill_colors <- c("RSTR" = "#984EA3", "LTBI" = "#4DAF4A")
 stims <- c("DMSO", "PP1", "TB WCL")
-status <- c("Pneg", "TST+")
+status <- c("RSTR", "LTBI")
 ```
 
 Pull out memory phenotype frequencies of RORyT+TBET- and RORyT-TBET- cells
@@ -335,7 +335,7 @@ for(pop in nodes_th17) {
     dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
     mutate(Freq = (Subpop/ParentCount)*100)
   
-  current_counts$Status <- factor(current_counts$Status, levels = c("Pneg", "TST+"))
+  current_counts$Status <- factor(current_counts$Status, levels = c("RSTR", "LTBI"))
   count_list_th17[[pop]] <- current_counts
 }
 
@@ -344,12 +344,12 @@ names(count_list_th17) <- nodes_short_th17
 
 # CD154|CD137
 
-Compare between Pneg vs. TST+.
+Compare between RSTR vs. LTBI.
 
 ```{r, fig.width=4, fig.height=5}
 cd154_cd137_plots_status <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(cd154_cd137_counts, current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                  make_mag_plots(cd154_cd137_counts, current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = "CD154+|CD137+",
                                                  y_axis_text = "% CD4 T Cells", y_axis_size = 15,   ylim = c(0, 6))
                                 })
@@ -374,7 +374,7 @@ cd154_cd137_plots_stim
 ```{r, fig.width=4, fig.height=5}
 cd137_plots_status <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(cd137_counts, current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                  make_mag_plots(cd137_counts, current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = "CD137+",
                                                  y_axis_text = "% CD4 T Cells", y_axis_size = 15,   ylim = c(0, 10))
                                 })
@@ -387,7 +387,7 @@ cd137_plots_status
 ```{r, fig.width=4, fig.height=5}
 ox40_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[1]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[1]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[1],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(72, 100))
                                 })
@@ -400,7 +400,7 @@ ox40_plots
 ```{r, fig.width=4, fig.height=5}
 ctla4_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[2]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[2]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[2],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
                                 })
@@ -413,7 +413,7 @@ ctla4_plots
 ```{r, fig.width=4, fig.height=5}
 naive_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[3]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[3]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[3],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 50))
                               })
@@ -426,7 +426,7 @@ naive_plots
 ```{r, fig.width=4, fig.height=5}
 tcm_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[4]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[4]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[4],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
                                 })
@@ -439,7 +439,7 @@ tcm_plots
 ```{r, fig.width=4, fig.height=5}
 tem_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[5]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[5]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[5],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 50))
                                 })
@@ -452,7 +452,7 @@ tem_plots
 ```{r, fig.width=4, fig.height=5}
 temra_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[6]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[6]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[6],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 3))
                                 })
@@ -466,7 +466,7 @@ temra_plots
 # RORyT+TBET+
 roryt_tbet_dp_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[7]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[7]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[7],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
                                 })
@@ -476,7 +476,7 @@ roryt_tbet_dp_plots
 # RORyT+TBET-
 roryt_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[8]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[8]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[8],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 25))
                                 })
@@ -486,7 +486,7 @@ roryt_plots
 # RORyT-TBET+
 tbet_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[9]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[9]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[9],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
                                 })
@@ -496,7 +496,7 @@ tbet_plots
 # RORyT-TBET-
 roryt_tbet_dn_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[10]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[10]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[10],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 70))
                                 })
@@ -509,7 +509,7 @@ roryt_tbet_dn_plots
 ```{r, fig.width=4, fig.height=5}
 cxcr3_ccr6_dp_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[11]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[11]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[11],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 50))
                                 })
@@ -518,7 +518,7 @@ cxcr3_ccr6_dp_plots
 
 cxcr3_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[12]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[12]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[12],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 40))
                                 })
@@ -527,7 +527,7 @@ cxcr3_plots
 
 ccr6_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[13]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[13]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[13],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 70))
                                 })
@@ -540,7 +540,7 @@ ccr6_plots
 ```{r, fig.width=4, fig.height=5}
 roryt_ccr6_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[14]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[14]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[14],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 20))
                                 })
@@ -553,7 +553,7 @@ roryt_ccr6_plots
 ```{r, fig.width=4, fig.height=5}
 tbet_cxcr3_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[15]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[15]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[15],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 40))
                                 })
@@ -566,7 +566,7 @@ tbet_cxcr3_plots
 ```{r, fig.width=4, fig.height=5}
 ifng_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[16]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[16]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[16],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 75))
                                 })
@@ -579,7 +579,7 @@ ifng_plots
 ```{r, fig.width=4, fig.height=5}
 il17a_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[17]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[17]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[17],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 14))
                                 })
@@ -594,7 +594,7 @@ Agnostic of other markers.
 ```{r, fig.width=4, fig.height=5}
 cd45ra_pos_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[18]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[18]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[18],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 50))
                                 })
@@ -603,7 +603,7 @@ cd45ra_pos_plots
 
 cd45ra_neg_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[19]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[19]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[19],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(55, 100))
                                 })
@@ -618,7 +618,7 @@ Agnostic of other markers.
 ```{r, fig.width=4, fig.height=5}
 ccr7_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[20]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[20]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[20],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(50, 100))
                                 })
@@ -633,7 +633,7 @@ Agnostic of other markers.
 ```{r, fig.width=4, fig.height=5}
 cxcr3_agnos_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[21]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[21]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[21],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
                                 })
@@ -648,7 +648,7 @@ Agnostic of other markers.
 ```{r, fig.width=4, fig.height=5}
 ccr6_agnos_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[22]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[22]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[22],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
                                 })
@@ -661,7 +661,7 @@ ccr6_agnos_plots
 ```{r, fig.width=4, fig.height=5}
 roryt_ifng_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list[[nodes_short[23]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                                  make_mag_plots(count_list[[nodes_short[23]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[23],
                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 1))
                                 })
@@ -674,7 +674,7 @@ roryt_ifng_plots
 ```{r, fig.width=4, fig.height=5}
 ccr6_roryt_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(ccr6_roryt_counts, current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                  make_mag_plots(ccr6_roryt_counts, current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = "CCR6+",
                                                  y_axis_text = "% RORyT+TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(70, 100))
                                 })
@@ -686,7 +686,7 @@ ccr6_roryt_plots
 ```{r}
 roryt_naive_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list_th17[[1]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                  make_mag_plots(count_list_th17[[1]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[1],
                                                  y_axis_text = "% RORyT+TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 20))
                                 })
@@ -695,7 +695,7 @@ roryt_naive_plots
 
 roryt_tcm_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list_th17[[2]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                  make_mag_plots(count_list_th17[[2]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[2],
                                                  y_axis_text = "% RORyT+TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(55, 100))
                                 })
@@ -704,7 +704,7 @@ roryt_tcm_plots
 
 roryt_tem_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list_th17[[3]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                  make_mag_plots(count_list_th17[[3]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[3],
                                                  y_axis_text = "% RORyT+TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 50))
                                 })
@@ -713,7 +713,7 @@ roryt_tem_plots
 
 roryt_temra_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list_th17[[4]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                  make_mag_plots(count_list_th17[[4]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[4],
                                                  y_axis_text = "% RORyT+TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 8))
                                 })
@@ -725,7 +725,7 @@ roryt_temra_plots
 ```{r}
 roryt_tbet_dn_naive_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list_th17[[5]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                  make_mag_plots(count_list_th17[[5]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[5],
                                                  y_axis_text = "% RORyT-TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 75))
                                 })
@@ -734,7 +734,7 @@ roryt_tbet_dn_naive_plots
 
 roryt_tbet_dn_tcm_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list_th17[[6]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                  make_mag_plots(count_list_th17[[6]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[6],
                                                  y_axis_text = "% RORyT-TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
                                 })
@@ -743,7 +743,7 @@ roryt_tbet_dn_tcm_plots
 
 roryt_tbet_dn_tem_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list_th17[[7]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                  make_mag_plots(count_list_th17[[7]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[7],
                                                  y_axis_text = "% RORyT-TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 25))
                                 })
@@ -752,7 +752,7 @@ roryt_tbet_dn_tem_plots
 
 roryt_tbet_dn_temra_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
-                                  make_mag_plots(count_list_th17[[8]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"), 
+                                  make_mag_plots(count_list_th17[[8]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short_th17[8],
                                                  y_axis_text = "% RORyT-TBET-\nCD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 4))
                                 })
@@ -772,8 +772,8 @@ dev.off()
 
 cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_CD154_CD137_DP_plots_by_stim.pdf"), width=6, height=5,
           onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
-print(cd154_cd137_plots_stim[["Pneg"]])
-print(cd154_cd137_plots_stim[["TST+"]])
+print(cd154_cd137_plots_stim[["RSTR"]])
+print(cd154_cd137_plots_stim[["LTBI"]])
 dev.off()
 
 cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_CD137_plots.pdf"), width=4, height=5,

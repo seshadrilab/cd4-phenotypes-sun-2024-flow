@@ -74,7 +74,7 @@ countMatrix_for_heatmap <- countMatrix_for_heatmap[, col_order]
 # Set column annotation
 ann <- pdata %>%
   select(Status, Stim)
-colors <- list("Status" = c("Pneg" = "#984EA3", "TST+" = "#4DAF4A"),
+colors <- list("Status" = c("RSTR" = "#984EA3", "LTBI" = "#4DAF4A"),
                "Stim" = c("DMSO" = "#bebada", "PP1" = "#8dd3c7", "TB WCL" = "#ffffb3"))
 colAnn <- HeatmapAnnotation (df = ann,
                              which = "col",

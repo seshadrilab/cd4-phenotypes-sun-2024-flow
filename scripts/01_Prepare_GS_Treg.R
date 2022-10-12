@@ -178,23 +178,23 @@ dev.off()
 # Drop sample RS102161 (had bacterial contamination after stimulation)
 gs <- subset(gs, `SAMPLE ID` != "RS102161")
 
-# Add "Status" column indicating if a sample is Pneg or TST+
+# Add "Status" column indicating if a sample is RSTR or LTBI
 metadata <- metadata %>%
   group_by(Status) %>%
   mutate(row = row_number()) %>%
   pivot_wider(names_from = Status, values_from = `Sample ID`) %>%
   select(-row)
 
-pneg_samples <- na.omit(metadata$Pneg) 
+pneg_samples <- na.omit(metadata$RSTR) 
 pneg_samples <- paste(pneg_samples, collapse = "|")
 
-tst_samples <- metadata$`TST+` 
+tst_samples <- metadata$`LTBI` 
 tst_samples <- paste(tst_samples, collapse = "|")
 
 pneg_index <- grepl(pneg_samples, pData(gs)$`SAMPLE ID`) 
 tst_index <- grepl(tst_samples, pData(gs)$`SAMPLE ID`) 
-pData(gs)$Status[pneg_index] <- "Pneg"
-pData(gs)$Status[tst_index] <- "TST+"
+pData(gs)$Status[pneg_index] <- "RSTR"
+pData(gs)$Status[tst_index] <- "LTBI"
 
 # Save GatingSet 
 save_gs(gs, here::here("out/GatingSets/RSTR_Treg_GatingSet"))
@@ -404,7 +404,7 @@ tbwcl_count <- subset(gs, Stim == "TB WCL") %>%
 # Plot DMSO, PP1, and TB WCL frequencies and perform Wilcoxon rank-sum test between batches
 # Argument "pop" is the list of nodes of interest
 # Note: p-values are unadjusted
-fill_colors <- c("Pneg" = "#984EA3", "TST+" = "#4DAF4A")
+fill_colors <- c("RSTR" = "#984EA3", "LTBI" = "#4DAF4A")
 
 plot_pop <- function(pop, counts) {     
   parent <- sub("(.*)\\/.*", "\\1", pop)

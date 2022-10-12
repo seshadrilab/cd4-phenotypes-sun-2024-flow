@@ -112,7 +112,7 @@ First, set cytokine order and colors for labels.
 cytokine_order_for_annotation <- c("CD154", "CD137", "CTLA4", "OX40")
 cytokine_row_name_text <- c("CD154", "CD137", "CTLA-4", "OX40") # make sure this is in the same order as "cytokine_order_for_annotation"
 
-status_colors <- c("Pneg" = "#984EA3", "TST+" = "#4DAF4A")
+status_colors <- c("RSTR" = "#984EA3", "LTBI" = "#4DAF4A")
 stim_colors <- c("PP1" = "#8dd3c7", "TB WCL" = "#ffffb3") 
 row_ann_colors <- list(`Stim` = stim_colors, `Status` = status_colors)
 
@@ -197,7 +197,7 @@ Note: all p-values are unadjusted.
 # Set cytokine order and colors for labels
 cytokine_order_for_annotation = c("CD154", "CD137", "CTLA4", "OX40")
 cytokine_row_name_text = c("CD154", "CD137", "CTLA-4", "OX40") # make sure this is in the same order as "cytokine_order_for_annotation"
-fill_colors <- c("Pneg" = "#984EA3", "TST+" = "#4DAF4A")
+fill_colors <- c("RSTR" = "#984EA3", "LTBI" = "#4DAF4A")
 ```
 
 ## CD4
@@ -218,9 +218,9 @@ treg_cd4_bg_corr_boxplots <- pmap(.l = list(CD4RunNames,
                                                             cytokine_order_for_annotation=cytokine_order_for_annotation,
                                                             cytokine_row_name_text = cytokine_row_name_text, 
                                                             p_text_size=p_text_size,
-                                                            group_by_order=c("Pneg", "TST+"),
+                                                            group_by_order=c("RSTR", "LTBI"),
                                                             group_by_colors=fill_colors,
-                                                            group_by_labels = c("Pneg", "TST+"),
+                                                            group_by_labels = c("RSTR", "LTBI"),
                                                             group_by_colname="Status",
                                                             zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                             dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
@@ -259,9 +259,9 @@ treg_cd8_bg_corr_boxplots <- pmap(.l = list(CD8RunNames,
                                                             cytokine_order_for_annotation=cytokine_order_for_annotation,
                                                             cytokine_row_name_text = cytokine_row_name_text, 
                                                             p_text_size=p_text_size,
-                                                            group_by_order=c("Pneg", "TST+"),
+                                                            group_by_order=c("RSTR", "LTBI"),
                                                             group_by_colors=fill_colors,
-                                                            group_by_labels = c("Pneg", "TST+"),
+                                                            group_by_labels = c("RSTR", "LTBI"),
                                                             group_by_colname="Status",
                                                             zeroed_BgCorr_stats = FALSE, zeroed_BgCorr_plot = FALSE,
                                                             dichotomize_by_cytokine = dichotomize_by_cytokine, dichotomize_by_cytokine_color="#999999",
@@ -300,7 +300,7 @@ fs_pfs_df <- lapply(c(CD4RunNames, CD8RunNames), function(n) {
   left_join(crList$CD4_PP1$data$meta %>%
               dplyr::select(`SAMPLE ID`, Status))
 
-fs_pfs_df$Status <- factor(fs_pfs_df$Status, levels = c("Pneg", "TST+"))
+fs_pfs_df$Status <- factor(fs_pfs_df$Status, levels = c("RSTR", "LTBI"))
 ```
 
 Write out the functionality scores to a file
@@ -319,7 +319,7 @@ if(save_output) {
 Set colors 
 
 ```{r}
-fill_colors <-  c("Pneg" = "#984EA3", "TST+" = "#4DAF4A")
+fill_colors <-  c("RSTR" = "#984EA3", "LTBI" = "#4DAF4A")
 ```
 
 Use Wilcoxon rank-sum test to compare across groups. 

@@ -122,7 +122,7 @@ countMatrix_for_heatmap <- countMatrix_for_heatmap[, col_order]
 # Set column annotation
 ann <- pdata %>%
   select(Status, Stim)
-colors <- list("Status" = c("Pneg" = "#984EA3", "TST+" = "#4DAF4A"),
+colors <- list("Status" = c("RSTR" = "#984EA3", "LTBI" = "#4DAF4A"),
                "Stim" = c("DMSO" = "#bebada", "PP1" = "#8dd3c7", "TB WCL" = "#ffffb3"))
 colAnn <- HeatmapAnnotation (df = ann,
                              which = "col",
@@ -259,7 +259,7 @@ treg_1_counts <- pData(gs) %>%
   dplyr::rename(Subpop = Count) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
   mutate(Freq = (Subpop/ParentCount)*100)
-treg_1_counts$Status <- factor(treg_1_counts$Status, levels = c("Pneg", "TST+"))
+treg_1_counts$Status <- factor(treg_1_counts$Status, levels = c("RSTR", "LTBI"))
 
 treg_2_counts <- pData(gs) %>%
   tibble::rownames_to_column("rowname") %>%
@@ -267,7 +267,7 @@ treg_2_counts <- pData(gs) %>%
   dplyr::rename(Subpop = Count) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
   mutate(Freq = (Subpop/ParentCount)*100)
-treg_2_counts$Status <- factor(treg_1_counts$Status, levels = c("Pneg", "TST+"))
+treg_2_counts$Status <- factor(treg_1_counts$Status, levels = c("RSTR", "LTBI"))
 
 treg_3_counts <- pData(gs) %>%
   tibble::rownames_to_column("rowname") %>%
@@ -275,17 +275,17 @@ treg_3_counts <- pData(gs) %>%
   dplyr::rename(Subpop = Count) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
   mutate(Freq = (Subpop/ParentCount)*100)
-treg_3_counts$Status <- factor(treg_1_counts$Status, levels = c("Pneg", "TST+"))
+treg_3_counts$Status <- factor(treg_1_counts$Status, levels = c("RSTR", "LTBI"))
 
 # Set color scheme and stims
-fill_colors <- c("Pneg" = "#984EA3", "TST+" = "#4DAF4A")
+fill_colors <- c("RSTR" = "#984EA3", "LTBI" = "#4DAF4A")
 stims <- c("DMSO", "PP1", "TB WCL")
-status <- c("Pneg", "TST+")
+status <- c("RSTR", "LTBI")
 
 # Plot frequencies
 treg_1_plots <- purrr::pmap(.l = list(stims),
                            .f = function(n) {
-                             make_mag_plots(treg_1_counts, current_stim = n, num_comparisons = length(stims), groups_to_compare = c("Pneg", "TST+"),
+                             make_mag_plots(treg_1_counts, current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                             paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = subpops[39],
                                             y_axis_text = "% CD3+ T Cells", y_axis_size = 15,   ylim = c(0, 0.00005))
                            })
