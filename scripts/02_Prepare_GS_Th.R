@@ -130,16 +130,16 @@ metadata <- metadata %>%
   pivot_wider(names_from = Status, values_from = `Sample ID`) %>%
   select(-row)
 
-pneg_samples <- na.omit(metadata$RSTR) 
-pneg_samples <- paste(pneg_samples, collapse = "|")
+rstr_samples <- na.omit(metadata$Pneg) 
+rstr_samples <- paste(rstr_samples, collapse = "|")
 
-tst_samples <- metadata$`LTBI` 
-tst_samples <- paste(tst_samples, collapse = "|")
+ltbi_samples <- metadata$`TST+` 
+ltbi_samples <- paste(ltbi_samples, collapse = "|")
 
-pneg_index <- grepl(pneg_samples, pData(gs)$`SAMPLE ID`)
-tst_index <- grepl(tst_samples, pData(gs)$`SAMPLE ID`) 
-pData(gs)$Status[pneg_index] <- "RSTR"
-pData(gs)$Status[tst_index] <- "LTBI"
+rstr_index <- grepl(rstr_samples, pData(gs)$`SAMPLE ID`)
+ltbi_index <- grepl(ltbi_samples, pData(gs)$`SAMPLE ID`) 
+pData(gs)$Status[rstr_index] <- "RSTR"
+pData(gs)$Status[ltbi_index] <- "LTBI"
 
 # Save GatingSet 
 save_gs(gs, here::here("out/GatingSets/RSTR_Th_GatingSet"))
