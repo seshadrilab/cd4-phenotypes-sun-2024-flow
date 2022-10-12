@@ -69,7 +69,7 @@ cd4_il10_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+
 # Add CD154+ OR CD137+ gate
 gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd4_cd154_path,
-                                                         "&", cd4_cd137_path))))),
+                                                         "|", cd4_cd137_path))))),
            parent = "CD4+", name = "CD4_CD154+_OR_CD137+")
 
 # Add other gates under CD154+_OR_CD137+ gates
