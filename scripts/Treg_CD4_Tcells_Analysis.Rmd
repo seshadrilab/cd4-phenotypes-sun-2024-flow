@@ -54,28 +54,11 @@ cd4_cd73_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+
 cd4_ccr7_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CCR7+"
 cd4_il10_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/IL10+"
 
-# Grab CD8 gate paths
-cd8_cd154_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/CD154+"
-cd8_cd137_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/CD137+"
-cd8_ox40_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/OX40+"
-cd8_ctla4_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/CTLA4+"
-cd8_foxp3_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/FOXP3+"
-cd8_cd25_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/CD25+"
-cd8_cd39_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/CD39+"
-cd8_cd73_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/CD73+"
-cd8_ccr7_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/CCR7+"
-cd8_il10_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD8+/IL10+"
-
 # Add CD154+ OR CD137+ gate
 gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd4_cd154_path,
-                                                         "&", cd4_cd137_path))))),
+                                                         "|", cd4_cd137_path))))),
            parent = "CD4+", name = "CD4_CD154+_OR_CD137+")
-
-gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
-                               list(v = as.symbol(paste0("", cd8_cd154_path,
-                                                         "&", cd8_cd137_path))))),
-           parent = "CD8+", name = "CD8_CD154+_OR_CD137+")
 
 # Add other gates under CD154+_OR_CD137+ gates
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_ox40_path),
@@ -107,34 +90,6 @@ gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_ccr7_path),
            parent = "CD4_CD154+_OR_CD137+", name = "CCR7+")
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_il10_path),
            parent = "CD4_CD154+_OR_CD137+", name = "IL10+")
-
-gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_ox40_path),
-           parent = "CD8_CD154+_OR_CD137+", name = "OX40+")
-gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_ctla4_path),
-           parent = "CD8_CD154+_OR_CD137+", name = "CTLA4+")
-gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
-                               list(v = as.symbol(paste0("", cd8_foxp3_path,
-                                                         "&", cd8_cd25_path))))),
-           parent = "CD8_CD154+_OR_CD137+", name = "FOXP3+CD25+")
-
-gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
-                               list(v = as.symbol(paste0("", cd8_foxp3_path,
-                                                         "&!", cd8_cd25_path))))),
-           parent = "CD8_CD154+_OR_CD137+", name = "FOXP3+CD25-")
-gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_cd25_path),
-           parent = "CD8_CD154+_OR_CD137+", name = "CD25+")
-gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
-                               list(v = as.symbol(paste0("", cd8_cd39_path,
-                                                         "&", cd8_cd73_path))))),
-           parent = "CD8_CD154+_OR_CD137+", name = "CD39+CD73+")
-gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_cd39_path),
-           parent = "CD8_CD154+_OR_CD137+", name = "CD39+")
-gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_cd73_path),
-           parent = "CD8_CD154+_OR_CD137+", name = "CD73+")
-gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_ccr7_path),
-           parent = "CD8_CD154+_OR_CD137+", name = "CCR7+")
-gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd8_il10_path),
-           parent = "CD8_CD154+_OR_CD137+", name = "IL10+")
 
 # Recompute the GatingSet 
 flowWorkspace::recompute(gs)
