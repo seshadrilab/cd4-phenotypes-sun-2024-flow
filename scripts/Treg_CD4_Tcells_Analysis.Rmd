@@ -187,7 +187,7 @@ cd154_cd137_plots_status <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
                                   make_mag_plots(cd154_cd137_counts, current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = "CD154+|CD137+",
-                                                 y_axis_text = "% CD4 T Cells", y_axis_size = 15,   ylim = c(0, 6))
+                                                 y_axis_text = "% CD4 T Cells", y_axis_size = 15,   ylim = c(0, 30))
                                 })
 names(cd154_cd137_plots_status) <- stims
 cd154_cd137_plots_status
@@ -221,25 +221,34 @@ cd137_plots_status
 # OX40
 
 ```{r, fig.width=4, fig.height=5}
-# There are two outliers in the PP1-stimmed samples, so the PP1 data will be plotted separately w/o the outlier samples
-ox40_plots <- purrr::pmap(.l = list(stims[-2]),
+# # There are two outliers in the PP1-stimmed samples, so the PP1 data will be plotted separately w/o the outlier samples
+# ox40_plots <- purrr::pmap(.l = list(stims[-2]),
+#                                 .f = function(n) {
+#                                   make_mag_plots(count_list[[nodes_short[1]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
+#                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[1],
+#                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(50, 100))
+#                                 })
+# names(ox40_plots) <- stims[-2]
+# 
+# ox40_counts_no_outlier <- count_list[[nodes_short[1]]] %>%
+#   dplyr::filter(Stim == "PP1") %>%
+#   dplyr::filter(`SAMPLE ID` != "RS102248" & `SAMPLE ID` != "RS102111")
+# 
+# ox40_pp1_plot <- make_mag_plots(count_list[[nodes_short[1]]], counts_no_outlier = ox40_counts_no_outlier, current_stim = "PP1", num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
+#                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[1],
+#                                                  y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(75, 100))
+# 
+# ox40_plots
+# ox40_pp1_plot
+
+ox40_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
                                   make_mag_plots(count_list[[nodes_short[1]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[1],
-                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(75, 100))
+                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(50, 100))
                                 })
-names(ox40_plots) <- stims[-2]
-
-ox40_counts_no_outlier <- count_list[[nodes_short[1]]] %>%
-  dplyr::filter(Stim == "PP1") %>%
-  dplyr::filter(`SAMPLE ID` != "RS102248" & `SAMPLE ID` != "RS102111")
-
-ox40_pp1_plot <- make_mag_plots(count_list[[nodes_short[1]]], counts_no_outlier = ox40_counts_no_outlier, current_stim = "PP1", num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
-                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[1],
-                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(75, 100))
-
+names(ox40_plots) <- stims
 ox40_plots
-ox40_pp1_plot
 ```
 
 # CTLA-4
@@ -315,7 +324,7 @@ cd39_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
                                   make_mag_plots(count_list[[nodes_short[8]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[8],
-                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 30))
+                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
                                 })
 names(cd39_plots) <- stims
 cd39_plots
@@ -350,7 +359,7 @@ foxp3_plots <- purrr::pmap(.l = list(stims),
                                 .f = function(n) {
                                   make_mag_plots(count_list[[nodes_short[11]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[11],
-                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 50))
+                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 70))
                                 })
 names(foxp3_plots) <- stims
 foxp3_plots
