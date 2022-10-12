@@ -42,6 +42,18 @@ if(!dir.exists(here::here("out/Th_CD4_Tcells_Analysis_by_Batch"))) {
   cat(sprintf("Creating folder %s\n", here::here("out/Th_CD4_Tcells_Analysis_by_Batch")))
   dir.create(here::here("out/Th_CD4_Tcells_Analysis_by_Batch"), recursive = T)
 }
+
+
+# Add shortened experiment name
+pData(gs)$`EXPERIMENT NAME`  <- str_replace_all(pData(gs)$`EXPERIMENT NAME`,
+                                                "20220415 RSTR INS Th B1",
+                                                "B1")
+
+pData(gs)$`EXPERIMENT NAME`  <- str_replace_all(pData(gs)$`EXPERIMENT NAME`,
+                                                "20220429 RSTR INS Th B2",
+                                                "B2")
+
+pData(gs)$Batch <- factor(pData(gs)$`EXPERIMENT NAME`, levels = c("B1", "B2"))
 ```
 
 # Add new gates
@@ -64,7 +76,7 @@ cd4_il17a_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4
 # Add CD154+ OR CD137+ gate
 gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd4_cd154_path,
-                                                         "&", cd4_cd137_path))))),
+                                                         "|", cd4_cd137_path))))),
            parent = "CD4+", name = "CD4_CD154+_OR_CD137+")
 
 # Add other gates under CD154+_OR_CD137+ gates
