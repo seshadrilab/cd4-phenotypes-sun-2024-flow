@@ -100,7 +100,7 @@ pop_counts <- pData(gs) %>%
   left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_cd154_cd137_parentGate), by = c("rowname" = "name")) %>%
   dplyr::rename(CD4_CD154_CD137 = Count) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, CD4_CD154_CD137) %>%
-  dplyr::filter(Stim == "PP1")
+  dplyr::filter(Stim != "DMSO")
 ```
 
 ```{r}
@@ -177,8 +177,8 @@ boolColorScheme <- c("FALSE" = "#9E9E9E", "TRUE" = "#C7254A")
 cd4_cd154_cd137_w_umap <- cd4_cd154_cd137_w_umap %>%
   mutate(dof = rowSums(dplyr::select(., all_of(cd4_gates_for_dimred[-c(1, 2)]))))
 
-stim_labs <- "PP1"
-names(stim_labs) <- "PP1"
+stim_labs <- c("PP1", "TB WCL")
+names(stim_labs) <- c("PP1", "TB WCL")
 group_labs <- c("RSTR", "LTBI")
 names(group_labs) <- c("RSTR", "LTBI")
 
@@ -221,10 +221,10 @@ base_dimred_plot <- function(currentColumn, pointSize = 0.02, colorScheme = NA) 
 
 ## Look for Batch and Patient sub-clustering
 
-```{r, fig.width=6, fig.height=5}
+```{r, fig.width=7, fig.height=5}
 base_dimred_plot("EXPERIMENT NAME")
 
-cairo_pdf(file=here::here("out/UMAP/Th_UMAP_by_Batch.pdf"), width=6, height=5,
+cairo_pdf(file=here::here("out/UMAP/Th_UMAP_by_Batch.pdf"), width=7, height=5,
           onefile = TRUE, bg = "transparent", family = "Arial")
 base_dimred_plot("EXPERIMENT NAME")
 dev.off()

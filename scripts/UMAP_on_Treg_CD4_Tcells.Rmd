@@ -98,7 +98,7 @@ pop_counts <- pData(gs) %>%
   left_join(gs_pop_get_count_fast(gs, subpopulations = cd4_cd154_cd137_parentGate), by = c("rowname" = "name")) %>%
   dplyr::rename(CD4_CD154_CD137 = Count) %>%
   dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, CD4_CD154_CD137) %>%
-  dplyr::filter(Stim == "PP1")
+  dplyr::filter(Stim != "DMSO")
 ```
 
 ```{r}
@@ -175,8 +175,8 @@ boolColorScheme <- c("FALSE" = "#9E9E9E", "TRUE" = "#C7254A")
 cd4_cd154_cd137_w_umap <- cd4_cd154_cd137_w_umap %>%
   mutate(dof = rowSums(dplyr::select(., all_of(cd4_gates_for_dimred[-c(1, 2)]))))
 
-stim_labs <- "PP1"
-names(stim_labs) <- "PP1"
+stim_labs <- c("PP1", "TB WCL")
+names(stim_labs) <- c("PP1", "TB WCL")
 group_labs <- c("RSTR", "LTBI")
 names(group_labs) <- c("RSTR", "LTBI")
 
@@ -219,22 +219,26 @@ base_dimred_plot <- function(currentColumn, pointSize = 0.02, colorScheme = NA) 
 
 ## Look for Batch and Patient sub-clustering
 
-```{r, fig.width=4, fig.height=5}
+```{r, fig.width=7, fig.height=5}
 base_dimred_plot("EXPERIMENT NAME")
 
-cairo_pdf(file=here::here("out/UMAP/Treg_UMAP_by_Batch.pdf"), width=4, height=5,
+if(save_output) {
+ cairo_pdf(file=here::here("out/UMAP/Treg_UMAP_by_Batch.pdf"), width=7, height=5,
           onefile = TRUE, bg = "transparent", family = "Arial")
-base_dimred_plot("EXPERIMENT NAME")
-dev.off()
+  base_dimred_plot("EXPERIMENT NAME")
+  dev.off() 
+}
 ```
 
 ```{r, fig.width=7, fig.height=8}
 base_dimred_plot("SAMPLE ID")
 
-cairo_pdf(file=here::here("out/UMAP/Treg_UMAP_by_PTID.pdf"), width=7, height=8,
+if(save_output) {
+ cairo_pdf(file=here::here("out/UMAP/Treg_UMAP_by_PTID.pdf"), width=7, height=8,
           onefile = TRUE, bg = "transparent", family = "Arial")
-base_dimred_plot("SAMPLE ID")
-dev.off()
+  base_dimred_plot("SAMPLE ID")
+  dev.off() 
+}
 ```
 
 ## Individual marker expression localization
@@ -245,11 +249,13 @@ for(cg in cd4_gates_for_dimred) {
           labs(title = sprintf("CD154+|CD137+ CD4 T cells UMAP\nColored by %s", sub(".*\\/([^(\\/)]+)", "\\1", cg))))
 }
 
-cairo_pdf(file=here::here("out/UMAP/Treg_UMAP_by_Single_Markers.pdf"), width=6, height=6,
+if(save_output) {
+ cairo_pdf(file=here::here("out/UMAP/Treg_UMAP_by_Single_Markers.pdf"), width=6, height=6,
           onefile = TRUE, bg = "transparent", family = "Arial")
-for(cg in cd4_gates_for_dimred) {
-  print(base_dimred_plot(cg, colorScheme = boolColorScheme) +
-          labs(title = sprintf("CD154+|CD137+ CD4 T cells UMAP\nColored by %s", sub(".*\\/([^(\\/)]+)", "\\1", cg))))
+  for(cg in cd4_gates_for_dimred) {
+    print(base_dimred_plot(cg, colorScheme = boolColorScheme) +
+            labs(title = sprintf("CD154+|CD137+ CD4 T cells UMAP\nColored by %s", sub(".*\\/([^(\\/)]+)", "\\1", cg))))
+    }
+  dev.off() 
 }
-dev.off()
 ```
