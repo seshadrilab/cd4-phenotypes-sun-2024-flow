@@ -63,8 +63,10 @@ gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
 # Add other gates under CD154+_OR_CD137+ gates
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_ox40_path),
            parent = "CD4_CD154+_OR_CD137+", name = "OX40+")
+
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_ctla4_path),
            parent = "CD4_CD154+_OR_CD137+", name = "CTLA4+")
+
 gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd4_foxp3_path,
                                                          "&", cd4_cd25_path))))),
@@ -74,20 +76,52 @@ gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd4_foxp3_path,
                                                          "&!", cd4_cd25_path))))),
            parent = "CD4_CD154+_OR_CD137+", name = "FOXP3+CD25-")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd4_foxp3_path,
+                                                         "&", cd4_cd25_path))))),
+           parent = "CD4_CD154+_OR_CD137+", name = "FOXP3-CD25+")
+
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_foxp3_path),
            parent = "CD4_CD154+_OR_CD137+", name = "FOXP3+")
+
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_cd25_path),
            parent = "CD4_CD154+_OR_CD137+", name = "CD25+")
+
 gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
                                list(v = as.symbol(paste0("", cd4_cd39_path,
                                                          "&", cd4_cd73_path))))),
            parent = "CD4_CD154+_OR_CD137+", name = "CD39+CD73+")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_cd39_path,
+                                                         "&", cd4_cd73_path))))),
+           parent = "CD4_CD154+_OR_CD137+/FOXP3+CD25+", name = "CD39+CD73+")
+
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_cd39_path),
            parent = "CD4_CD154+_OR_CD137+", name = "CD39+")
+
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_cd73_path),
            parent = "CD4_CD154+_OR_CD137+", name = "CD73+")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_cd39_path,
+                                                         "&!", cd4_cd73_path))))),
+           parent = "CD4_CD154+_OR_CD137+/FOXP3+CD25+", name = "CD39+CD73-")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd4_cd39_path,
+                                                         "&", cd4_cd73_path))))),
+           parent = "CD4_CD154+_OR_CD137+/FOXP3+CD25+", name = "CD39-CD73+")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd4_cd39_path,
+                                                         "&!", cd4_cd73_path))))),
+           parent = "CD4_CD154+_OR_CD137+/FOXP3+CD25+", name = "CD39-CD73-")
+
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_ccr7_path),
            parent = "CD4_CD154+_OR_CD137+", name = "CCR7+")
+
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_il10_path),
            parent = "CD4_CD154+_OR_CD137+", name = "IL10+")
 
@@ -125,6 +159,33 @@ cd137_counts <- pData(gs) %>%
 cd137_counts$Status <- factor(cd137_counts$Status, levels = c("RSTR", "LTBI"))
 ```
 
+Extract the frequencies of CD39+CD73+ Tregs
+
+```{r}
+cd39_cd73_treg_nodes <- c("/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_CD154+_OR_CD137+/FOXP3+CD25+/CD39+CD73+",
+                          "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_CD154+_OR_CD137+/FOXP3+CD25+/CD39+CD73-",
+                          "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_CD154+_OR_CD137+/FOXP3+CD25+/CD39-CD73+",
+                          "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_CD154+_OR_CD137+/FOXP3+CD25+/CD39-CD73-")
+
+cd39_cd73_treg_nodes_short <- str_replace(cd39_cd73_treg_nodes, "\\/Time\\/Cells\\/CD3\\+\\CD14\\-\\CD19\\-\\/Singlets\\/Live\\/CD3\\+\\ Lymphocytes\\/CD4\\+\\/CD4\\_\\CD154\\+\\_\\OR\\_\\CD137\\+\\/FOXP3\\+\\CD25\\+\\/", "")
+
+cd39_cd73_treg_count_list <- list()
+
+for(pop in cd39_cd73_treg_nodes) {
+  current_counts <- pData(gs) %>%
+    tibble::rownames_to_column("rowname") %>%
+    left_join(gs_pop_get_count_fast(gs, subpopulations = pop), by = c("rowname" = "name")) %>%
+    dplyr::rename(Subpop = Count) %>%
+    dplyr::select(rowname, "SAMPLE ID", "EXPERIMENT NAME", Stim, Status, Subpop, ParentCount) %>%
+    mutate(Freq = (Subpop/ParentCount)*100)
+  
+  current_counts$Status <- factor(current_counts$Status, levels = c("RSTR", "LTBI"))
+  cd39_cd73_treg_count_list[[pop]] <- current_counts
+}
+
+names(cd39_cd73_treg_count_list) <- cd39_cd73_treg_nodes_short
+```
+
 Next, extract the frequencies of all other markers.
 ```{r}
 nodes <- c("/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_CD154+_OR_CD137+/OX40+",
@@ -137,7 +198,8 @@ nodes <- c("/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_C
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_CD154+_OR_CD137+/CD39+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_CD154+_OR_CD137+/CD73+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_CD154+_OR_CD137+/CCR7+",
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_CD154+_OR_CD137+/FOXP3+")
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_CD154+_OR_CD137+/FOXP3+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD4_CD154+_OR_CD137+/FOXP3-CD25+")
 nodes_short <- str_replace(nodes, "\\/Time\\/Cells\\/CD3\\+\\CD14\\-\\CD19\\-\\/Singlets\\/Live\\/CD3\\+\\ Lymphocytes\\/CD4\\+\\/CD4\\_\\CD154\\+\\_\\OR\\_\\CD137\\+\\/", "")
 
 count_list <- list()
@@ -216,6 +278,50 @@ cd137_plots_status <- purrr::pmap(.l = list(stims),
                                 })
 names(cd137_plots_status) <- stims
 cd137_plots_status
+```
+
+# CD39+ and CD73+ Tregs
+
+```{r, fig.width=4, fig.height=5}
+# CD39+CD73+
+cd39_cd73_dp_treg_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(cd39_cd73_treg_count_list[[cd39_cd73_treg_nodes_short[1]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = cd39_cd73_treg_nodes_short[1],
+                                                 y_axis_text = "% CD154+|CD137+ Tregs", y_axis_size = 15,   ylim = c(0, 15))
+                                })
+names(cd39_cd73_dp_treg_plots) <- stims
+cd39_cd73_dp_treg_plots
+
+# CD39+CD73-
+cd39_treg_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(cd39_cd73_treg_count_list[[cd39_cd73_treg_nodes_short[2]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = cd39_cd73_treg_nodes_short[2],
+                                                 y_axis_text = "% CD154+|CD137+ Tregs", y_axis_size = 15,   ylim = c(0, 100))
+                                })
+names(cd39_treg_plots) <- stims
+cd39_treg_plots
+
+# CD39-CD73+
+cd73_treg_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(cd39_cd73_treg_count_list[[cd39_cd73_treg_nodes_short[3]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = cd39_cd73_treg_nodes_short[3],
+                                                 y_axis_text = "% CD154+|CD137+ Tregs", y_axis_size = 15,   ylim = c(0, 100))
+                                })
+names(cd73_treg_plots) <- stims
+cd73_treg_plots
+
+# CD39-CD73-
+cd39_cd73_dn_treg_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(cd39_cd73_treg_count_list[[cd39_cd73_treg_nodes_short[4]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"), 
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = cd39_cd73_treg_nodes_short[4],
+                                                 y_axis_text = "% CD154+|CD137+ Tregs", y_axis_size = 15,   ylim = c(0, 100))
+                                })
+names(cd39_cd73_dn_treg_plots) <- stims
+cd39_cd73_dn_treg_plots
 ```
 
 # OX40
@@ -363,4 +469,17 @@ foxp3_plots <- purrr::pmap(.l = list(stims),
                                 })
 names(foxp3_plots) <- stims
 foxp3_plots
+```
+
+# FoxP3-CD25+
+
+```{r, fig.width=4, fig.height=5}
+foxp3n_cd25p_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list[[nodes_short[12]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[12],
+                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
+                                })
+names(foxp3n_cd25p_plots) <- stims
+foxp3n_cd25p_plots
 ```
