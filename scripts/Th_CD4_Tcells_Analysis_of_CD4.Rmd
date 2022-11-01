@@ -53,6 +53,47 @@ cd4_il17a_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4
 gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y = cd4_il17a_path),
            parent = "CD4+", name = "IL17a+")
 
+# Add other gates
+cd4_roryt_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/RORyT+"
+cd4_tbet_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/TBET+"
+cd4_ifng_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IFNg+"
+cd4_il17a_path_new <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IL17a+"
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_roryt_path,
+                                                         "&!", cd4_tbet_path))))),
+           parent = "CD4+", name = "RORyT+TBET-")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd4_roryt_path,
+                                                         "&", cd4_tbet_path))))),
+           parent = "CD4+", name = "RORyT-TBET+")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd4_roryt_path,
+                                                         "&!", cd4_tbet_path))))),
+           parent = "CD4+", name = "RORyT-TBET-")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_roryt_path,
+                                                         "&", cd4_tbet_path))))),
+           parent = "CD4+", name = "RORyT+TBET+")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_ifng_path,
+                                                         "&", cd4_il17a_path_new))))),
+           parent = "CD4+", name = "IFNg+IL17a+")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("", cd4_ifng_path,
+                                                         "&!", cd4_il17a_path_new))))),
+           parent = "CD4+", name = "IFNg+IL17a-")
+
+gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
+                               list(v = as.symbol(paste0("!", cd4_ifng_path,
+                                                         "&", cd4_il17a_path_new))))),
+           parent = "CD4+", name = "IFNg-IL17a+")
+
 recompute(gs)
 
 # Get nodes of interest
@@ -67,7 +108,14 @@ nodes <- c("/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positi
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/RORyT+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/TBET+",
            "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IFNg+",
-           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IL17a+")
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IL17a+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/RORyT+TBET-",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/RORyT-TBET+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/RORyT-TBET-",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/RORyT+TBET+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IFNg+IL17a+",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IFNg+IL17a-",
+           "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4 Positive/CD4+/IFNg-IL17a+")
 nodes_short <- str_replace(nodes, "\\/Time\\/Cells\\/CD3\\+\\CD14\\-\\CD19\\-\\/Singlets\\/Live\\/CD3\\+\\ Lymphocytes\\/CD4 Positive\\/CD4\\+\\/", "")
 
 # Get counts
@@ -248,6 +296,97 @@ names(il17a_plots) <- stims
 il17a_plots
 ```
 
+# RORyT+TBET-
+
+```{r, fig.width=4, fig.height=5}
+th17_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list[[nodes_short[13]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[13],
+                                                 y_axis_text = "% CD4 T Cells", y_axis_size = 15,   ylim = c(0, 2))
+                                })
+names(th17_plots) <- stims
+th17_plots
+```
+
+# RORyT-TBET+
+
+```{r, fig.width=4, fig.height=5}
+rorytn_tbetp_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list[[nodes_short[14]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[14],
+                                                 y_axis_text = "% CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
+                                })
+names(rorytn_tbetp_plots) <- stims
+rorytn_tbetp_plots
+```
+
+# RORyT-TBET-
+
+```{r, fig.width=4, fig.height=5}
+roryt_tbet_dn_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list[[nodes_short[15]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[15],
+                                                 y_axis_text = "% CD4 T Cells", y_axis_size = 15,   ylim = c(0, 100))
+                                })
+names(roryt_tbet_dn_plots) <- stims
+roryt_tbet_dn_plots
+```
+
+# RORyT+TBET+
+
+```{r, fig.width=4, fig.height=5}
+roryt_tbet_dp_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list[[nodes_short[16]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[16],
+                                                 y_axis_text = "% CD4 T Cells", y_axis_size = 15,   ylim = c(0, 10))
+                                })
+names(roryt_tbet_dp_plots) <- stims
+roryt_tbet_dp_plots
+```
+
+# IFNg+IL17a+
+
+```{r, fig.width=4, fig.height=5}
+ifng_il17a_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list[[nodes_short[17]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[17],
+                                                 y_axis_text = "% CD4 T Cells", y_axis_size = 15,   ylim = c(0, 0.15))
+                                })
+names(ifng_il17a_plots) <- stims
+ifng_il17a_plots
+```
+
+# IFNg+IL17a-
+
+```{r, fig.width=4, fig.height=5}
+ifngp_il17an_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list[[nodes_short[18]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[18],
+                                                 y_axis_text = "% CD4 T Cells", y_axis_size = 15,   ylim = c(0, 5))
+                                })
+names(ifngp_il17an_plots) <- stims
+ifngp_il17an_plots
+```
+
+# IFNg-IL17a+
+
+```{r, fig.width=4, fig.height=5}
+ifngn_il17ap_plots <- purrr::pmap(.l = list(stims),
+                                .f = function(n) {
+                                  make_mag_plots(count_list[[nodes_short[19]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
+                                                 paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[19],
+                                                 y_axis_text = "% CD4 T Cells", y_axis_size = 15,   ylim = c(0, 0.5))
+                                })
+names(ifngn_il17ap_plots) <- stims
+ifngn_il17ap_plots
+```
+
 # Save plots 
 
 ```{r}
@@ -333,5 +472,54 @@ cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis_of_CD4/Th_CD4_IL17a_plots_
 print(il17a_plots[["DMSO"]])
 print(il17a_plots[["PP1"]])
 print(il17a_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis_of_CD4/Th_CD4_RORyTpos_TBETneg_plots_of_CD4.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(th17_plots[["DMSO"]])
+print(th17_plots[["PP1"]])
+print(th17_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis_of_CD4/Th_CD4_RORyTneg_TBETpos_plots_of_CD4.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(rorytn_tbetp_plots[["DMSO"]])
+print(rorytn_tbetp_plots[["PP1"]])
+print(rorytn_tbetp_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis_of_CD4/Th_CD4_RORyT_TBET_DN_plots_of_CD4.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(roryt_tbet_dn_plots[["DMSO"]])
+print(roryt_tbet_dn_plots[["PP1"]])
+print(roryt_tbet_dn_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis_of_CD4/Th_CD4_RORyT_TBET_DP_plots_of_CD4.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(roryt_tbet_dp_plots[["DMSO"]])
+print(roryt_tbet_dp_plots[["PP1"]])
+print(roryt_tbet_dp_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis_of_CD4/Th_CD4_IFNg_IL17a_plots_of_CD4.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(ifng_il17a_plots[["DMSO"]])
+print(ifng_il17a_plots[["PP1"]])
+print(ifng_il17a_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis_of_CD4/Th_CD4_IFNgpos_IL17aneg_plots_of_CD4.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(ifngp_il17an_plots[["DMSO"]])
+print(ifngp_il17an_plots[["PP1"]])
+print(ifngp_il17an_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis_of_CD4/Th_CD4_IFNgneg_IL17apos_plots_of_CD4.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(ifngn_il17ap_plots[["DMSO"]])
+print(ifngn_il17ap_plots[["PP1"]])
+print(ifngn_il17ap_plots[["TB WCL"]])
 dev.off()
 ```
