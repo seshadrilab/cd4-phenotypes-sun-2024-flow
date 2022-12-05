@@ -1,27 +1,12 @@
-library(CytoML) 
-library(flowCore) 
-library(flowWorkspace) 
+library(CytoML)
+library(flowCore)
+library(flowWorkspace)
 library(ggcyto)
 library(here)
 library(tidyverse)
 library(readxl)
 
-## Create directories if needed ## 
-if(!dir.exists(here::here("data"))) {
-  cat(sprintf("Creating folder %s\n", here::here("out/QC")))
-  dir.create(here::here("out/QC"), recursive = T)
-}
-
-if(!dir.exists(here::here("out"))) {
-  cat(sprintf("Creating folder %s\n", here::here("out/QC")))
-  dir.create(here::here("out/QC"), recursive = T)
-}
-
-if(!dir.exists(here::here("scripts"))) {
-  cat(sprintf("Creating folder %s\n", here::here("out/QC")))
-  dir.create(here::here("out/QC"), recursive = T)
-}
-
+## Create directories if needed ##
 if(!dir.exists(here::here("out/QC"))) {
   cat(sprintf("Creating folder %s\n", here::here("out/QC")))
   dir.create(here::here("out/QC"), recursive = T)
@@ -42,14 +27,32 @@ if(!dir.exists(here::here("out/GatingSets"))) {
   dir.create(here::here("out/GatingSets"), recursive = T)
 }
 
+if(!dir.exists(here::here("data/20220415_RSTR_INS_Treg_FCS_B1/"))) {
+  cat(sprintf("Creating folder %s\n", here::here("data/20220415_RSTR_INS_Treg_FCS_B1/")))
+  dir.create(here::here("data/20220415_RSTR_INS_Treg_FCS_B1/"), recursive = T)
+}
+
+if(!dir.exists(here::here("data/20220429_RSTR_INS_Treg_FCS_B2/"))) {
+  cat(sprintf("Creating folder %s\n", here::here("data/20220429_RSTR_INS_Treg_FCS_B2/")))
+  dir.create(here::here("data/20220429_RSTR_INS_Treg_FCS_B2/"), recursive = T)
+}
+
 ## Load data ##
+# Must have copied files over from LSR Fortessa/2022 RSTR INS Validation Study/
+# and some subfolders
+
+metadata <- read_xlsx(here::here("data/2022 RSTR INS Metadata.xlsx"), sheet = 2, range = cell_rows(1:41))
+
+# Batch 1: ./20220415 RSTR INS Treg B1/
 xml_path_b1 <- here::here("data/RSTR INS Treg B1VF1.xml")
+fcs_subfolder_b1 <- here::here("data/20220415_RSTR_INS_Treg_FCS_B1/")  # *.fcs
+
+# Batch 2: ./20220429 RSTR INS Treg B2/
 xml_path_b2 <- here::here("data/RSTR INS Treg B2VF1.xml")
-fcs_subfolder_b1 <- here::here("data/20220415_RSTR_INS_Treg_FCS_B1/")
-fcs_subfolder_b2 <- here::here("data/20220429_RSTR_INS_Treg_FCS_B2/")
+fcs_subfolder_b2 <- here::here("data/20220429_RSTR_INS_Treg_FCS_B2/")  # *.fcs
+
 ws_b1 <- open_flowjo_xml(xml_path_b1)
 ws_b2 <- open_flowjo_xml(xml_path_b2)
-metadata <- read_xlsx(here::here("data/2022 RSTR INS Metadata.xlsx"), sheet = 2, range = cell_rows(1:41))
 
 # Drop the samples we didn't use from the metadata
 metadata <- subset(metadata, is.na(metadata[,"...11"])) %>%
@@ -192,6 +195,12 @@ pData(gs)$Status[tst_index] <- "TST+"
 
 # Save GatingSet 
 save_gs(gs, here::here("out/GatingSets/RSTR_Treg_GatingSet"))
+
+
+####################
+## OPTIONAL STEPS ##
+####################
+
 
 ## Perform QC ##
 # Load gating set if needed: 

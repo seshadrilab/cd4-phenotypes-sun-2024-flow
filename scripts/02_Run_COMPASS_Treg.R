@@ -6,7 +6,7 @@
 # One way to do this is to open your terminal and navigate to the top level of the project folder, start up R in interactive mode,
 # and paste in the contents of this script.
 # 
-# Or run: R CMD scripts/Run_COMPASS_Treg.R
+# Or run: R CMD scripts/02_Run_COMPASS_Treg.R
 # If you are using Unix/macOS, multicore processing (efficient forked/shared memory) only works when run from the terminal.
 # Windows does not support forking.
 # See: future::supportsMulticore()
@@ -48,6 +48,7 @@ future::supportsMulticore() # Run in terminal to get TRUE
 # see ?future::supportsMulticore "
 future::plan(multicore(workers = max(1, availableCores() - 2)))
 
+# Outputs the time used in seconds ('elapsed' is total time)
 system.time({
   out <- furrr::future_pmap(.l = list(stims_for_compass_runs_rep,
                                       parent_nodes_for_compass_runs_rep,
