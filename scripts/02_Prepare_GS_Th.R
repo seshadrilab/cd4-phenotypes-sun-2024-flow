@@ -44,8 +44,8 @@ if(!dir.exists(here::here("out/GatingSets"))) {
 }
 
 ## Load data ##
-xml_path_b1 <- here::here("data/20220415 RSTR INS Th B1VF1.xml")
-xml_path_b2 <- here::here("data/20220829 RSTR INS Th B2VF1.xml")
+xml_path_b1 <- here::here("data/20221205 RSTR INS Th B1VF2.xml")
+xml_path_b2 <- here::here("data/20221205 RSTR INS Th B2VF2.xml")
 fcs_subfolder_b1 <- here::here("data/20220415_RSTR_INS_Th_FCS_B1/")
 fcs_subfolder_b2 <- here::here("data/20220429_RSTR_INS_Th_FCS_B2/")
 ws_b1 <- open_flowjo_xml(xml_path_b1)
