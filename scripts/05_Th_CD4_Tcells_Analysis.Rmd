@@ -823,4 +823,32 @@ print(ccr6_roryt_plots[["DMSO"]])
 print(ccr6_roryt_plots[["PP1"]])
 print(ccr6_roryt_plots[["TB WCL"]])
 dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_CXCR3_CCR6_DP_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(cxcr3_ccr6_dp_plots[["DMSO"]])
+print(cxcr3_ccr6_dp_plots[["PP1"]])
+print(cxcr3_ccr6_dp_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_CXCR3_CCR6_DN_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(cxcr3_ccr6_dn_plots[["DMSO"]])
+print(cxcr3_ccr6_dn_plots[["PP1"]])
+print(cxcr3_ccr6_dn_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_CXCR3_pos_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(cxcr3_plots[["DMSO"]])
+print(cxcr3_plots[["PP1"]])
+print(cxcr3_plots[["TB WCL"]])
+dev.off()
+
+cairo_pdf(file=here::here("out/Th_CD4_Tcells_Analysis/Th_CD4_CCR6_pos_plots.pdf"), width=4, height=5,
+          onefile = TRUE, bg = "transparent", family = "Arial") # default unit is inches, default font is Helvetica.
+print(ccr6_plots[["DMSO"]])
+print(ccr6_plots[["PP1"]])
+print(ccr6_plots[["TB WCL"]])
+dev.off()
 ```
