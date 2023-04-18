@@ -50,10 +50,10 @@ fcs_subfolder_b1 <- here::here("data/20220415_RSTR_INS_Th_FCS_B1/")
 fcs_subfolder_b2 <- here::here("data/20220429_RSTR_INS_Th_FCS_B2/")
 ws_b1 <- open_flowjo_xml(xml_path_b1)
 ws_b2 <- open_flowjo_xml(xml_path_b2)
-metadata <- read_xlsx(here::here("data/2022 RSTR INS Metadata.xlsx"), sheet = 2, range = cell_rows(1:41))
+metadata <- read_xlsx(here::here("data/2022 RSTR INS Metadata.xlsx"), sheet = 1, range = cell_rows(1:41))
 
 # Drop the samples we didn't use from the metadata
-metadata <- subset(metadata, is.na(metadata[,"...11"])) %>%
+metadata <- subset(metadata, is.na(metadata[,"...9"])) %>%
   select(`Sample ID`, `Status`)
 
 ## Create workspaces and prepare GatingSets ##

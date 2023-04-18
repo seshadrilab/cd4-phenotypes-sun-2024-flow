@@ -55,10 +55,10 @@ fcs_subfolder_b1 <- here::here("data/20220415_RSTR_INS_Treg_FCS_B1/")
 fcs_subfolder_b2 <- here::here("data/20220429_RSTR_INS_Treg_FCS_B2/")
 ws_b1 <- open_flowjo_xml(xml_path_b1)
 ws_b2 <- open_flowjo_xml(xml_path_b2)
-metadata <- read_xlsx(here::here("data/2022 RSTR INS Metadata.xlsx"), sheet = 2, range = cell_rows(1:41))
+metadata <- read_xlsx(here::here("data/2022 RSTR INS Metadata.xlsx"), sheet = 1, range = cell_rows(1:41))
 
 # Drop the samples we didn't use from the metadata
-metadata <- subset(metadata, is.na(metadata[,"...11"])) %>%
+metadata <- subset(metadata, is.na(metadata[,"...9"])) %>%
   select(`Sample ID`, `Status`)
 
 ## Create workspaces and prepare GatingSets ##
@@ -144,31 +144,6 @@ all(colnames(pData(gs_b1)) == colnames(pData(gs_b2)))
 
 # Merge GatingSets from all batches
 gs <- merge_list_to_gs(c(gs_b1, gs_b2))
-
-# # Add FOXP3+&CD25+ boolean gate under CD4+
-# cd4_foxp3_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/FOXP3+"
-# cd4_cd25_path <- "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD25+"
-# 
-# gs_pop_add(gs, eval(substitute(flowWorkspace::booleanFilter(v),
-#                                list(v = as.symbol(paste0("", cd4_foxp3_path,
-#                                                          "&", cd4_cd25_path))))),
-#            parent = "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+", name = "FOXP3+CD25+")
-# 
-# # Copy gates under FOXP3+CD25+ parent gate
-# gates_to_copy <- c("/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/IL10+",
-#                    "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD39+",
-#                    "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD73+",
-#                    "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD137+",
-#                    "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CD154+",
-#                    "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CCR7+",
-#                    "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/CTLA4+",
-#                    "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/OX40+")
-# 
-# for(path in gates_to_copy) {
-#   gs_pop_add(gs, lapply(gs, gh_pop_get_gate, y=path),
-#              parent = "/Time/Cells/CD3+CD14-CD19-/Singlets/Live/CD3+ Lymphocytes/CD4+/FOXP3+CD25+")
-# }
-# recompute(gs)
 
 # Plot gating tree
 png(here::here("out/QC/Treg_GatingTree.png"), width = 7, height = 5, units = "in", res = 300)
