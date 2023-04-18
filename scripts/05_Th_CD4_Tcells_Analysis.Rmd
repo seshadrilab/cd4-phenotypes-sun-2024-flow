@@ -508,11 +508,11 @@ tbet_cxcr3_plots
 # IFNg
 
 ```{r, fig.width=4, fig.height=5}
-ifng_plots <- purrr::pmap(.l = list(stims),
-                                .f = function(n) {
+ifng_plots <- purrr::pmap(.l = list(stims, list(c(0,25), c(0,25), c(0,40))),
+                                .f = function(n, y) {
                                   make_mag_plots(count_list[[nodes_short[17]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[17],
-                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 75))
+                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = y)
                                 })
 names(ifng_plots) <- stims
 ifng_plots
@@ -521,14 +521,23 @@ ifng_plots
 # IL17a
 
 ```{r, fig.width=4, fig.height=5}
-il17a_plots <- purrr::pmap(.l = list(stims),
-                                .f = function(n) {
+il17a_plots <- purrr::pmap(.l = list(stims, list(c(0,5.5), c(0,5.5), c(0,5))),
+                                .f = function(n, y) {
                                   make_mag_plots(count_list[[nodes_short[18]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[18],
-                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 14))
+                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = y)
                                 })
 names(il17a_plots) <- stims
 il17a_plots
+
+il17a_counts_no_outlier <- count_list$`IL17a+` %>%
+  dplyr::filter(Stim == "PP1") %>%
+  dplyr::filter(`SAMPLE ID` != "RS102301")
+
+fmla <- formula(paste("Freq ~ ", "Status"))
+test <- wilcox.test(fmla, data = il17a_counts_no_outlier, paired = FALSE)
+test_df <- data.frame(p = as.numeric(unlist(test)["p.value"])) %>%
+      mutate(p_val_text = if_else(p < 0.001, "p<0.001", paste0("p=", formatC(round(p, 3), format='f', digits=3))))
 ```
 
 # CD45RA
