@@ -1,0 +1,88 @@
+---
+title: "RSTR_Tscm_SortAnalysis_all_batches"
+author: "Nathan Kieswetter - Seshadri Lab"
+date: "2024-05-16"
+output: html_document
+---
+
+Load in appropriate libraries
+
+```{r}
+library(here)
+library(tidyverse)
+library(devtools)
+library(scales)
+library(tidyselect)
+library(readxl)
+library(ggpubr)
+```
+
+Read in the count table
+
+```{r}
+counts <- read_excel("data/Tscm_sort_all_batches.xlsx")
+```
+
+Add RS102 to the beginning of each PTID to identify and segregate PTIDS into groups
+
+```{r }
+batch1_2_counts <- batch1_2_counts %>%
+  mutate(ptid = paste0("RS102", ptid))
+```
+
+Define P_neg and TST_pos PTIDS and rename to RSTR and LTBI, respectively.
+
+```{r}
+
+p_neg_ptids <- c( "RS102451","RS102510","RS102287","RS102058",
+                  "RS102183","RS102346","RS102545","RS102373",
+                  "RS102134","RS102438","RS102353","RS102360"
+)
+
+tst_pos_ptids <- c("RS102187", "RS102095", "RS102297", "RS102332", "RS102235",
+                   "RS102248", "RS102236", "RS102254", "RS102244", "RS102539",
+                   "RS102327", "RS102385", "RS102530", "RS102164", "RS102525",
+                   "RS102358", "RS102111", "RS102380", "RS102217", "RS102284",
+                   "RS102361", "RS102088", "RS102056", "RS102180", "RS102323",
+                   "RS102301")
+
+batch1_2_counts <- batch1_2_counts %>%
+  mutate(group = case_when(ptid %in% p_neg_ptids ~ "RSTR",
+                           ptid %in% tst_pos_ptids ~ "LTBI")
+  )
+```
+
+Re-define column names
+
+```{r}
+counts <- counts %>%
+  rename(  "CD95" = "Singlets/Single Cells/Lymphocytes/Live_cells/Activated_cells/CD45RA_CCR7_pos/CD45RO_neg_CCR7_pos/CD95_pos | Freq. of Live_cells"
+)%>%
+  filter(stim != "DMSO") %>%
+  mutate(group = factor(group, levels = c("RSTR", "LTBI")))
+```
+
+Plot all CD95+ cells of total CD3+ cells
+
+```{r}
+ggplot(counts,
+       aes(x = stim,
+           y = CD95,
+           color = group)) +
+  labs(fill = 'Group') +
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1)) +
+  xlab("Stimulation") +
+  ylab("Tscm frequency (%)") +
+  ggtitle("Of activated CD3+ cells") +
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme_bw() +
+  theme(text = element_text(family="Arial", size=22),
+        axis.text.x = element_text(color="black"),
+        axis.text.y = element_text(color="black"),
+        plot.title = element_text(hjust = 0.5),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()) +
+  scale_color_manual(values = c("#984EA3","#4DAF4A")) +
+  stat_compare_means(method = "wilcox.test")
+```
