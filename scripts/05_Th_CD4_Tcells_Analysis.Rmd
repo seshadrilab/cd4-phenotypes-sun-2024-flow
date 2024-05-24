@@ -409,11 +409,11 @@ names(roryt_tbet_dp_plots) <- stims
 roryt_tbet_dp_plots
 
 # RORyT+TBET-
-roryt_plots <- purrr::pmap(.l = list(stims),
-                                .f = function(n) {
+roryt_plots <- purrr::pmap(.l = list(stims, list(c(0, 25), c(0,25), c(0, 8))),
+                                .f = function(n, y) {
                                   make_mag_plots(count_list[[nodes_short[8]]], current_stim = n, num_comparisons = length(stims), groups_to_compare = c("RSTR", "LTBI"),
                                                  paired = FALSE, adjust_p = FALSE, fill_colors = fill_colors, group_by_colname = "Status", subtitle = nodes_short[8],
-                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = c(0, 25))
+                                                 y_axis_text = "% CD154+|CD137+ CD4 T Cells", y_axis_size = 15,   ylim = y)
                                 })
 names(roryt_plots) <- stims
 roryt_plots
